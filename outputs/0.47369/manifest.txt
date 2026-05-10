@@ -1,0 +1,8 @@
+score=0.47369
+leaderboard=public
+leaderboard_fraction=approximately_50_percent_test_data
+source_submission=outputs/submissions/next_blend_top3_submission.csv
+model=blend_top3
+local_cv_qwk=0.511721
+local_cv_accuracy=0.403368
+note=blend_top3 underperformed both Logistic single models on public leaderboard.

@@ -1,0 +1,8 @@
+score=0.47950
+leaderboard=public
+leaderboard_fraction=approximately_50_percent_test_data
+source_submission=outputs/submissions/next_logreg_word_submission.csv
+model=logreg_word
+local_cv_qwk=0.506283
+local_cv_accuracy=0.394146
+note=Word-only LogisticRegression nearly matched word+char on public leaderboard.

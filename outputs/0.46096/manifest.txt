@@ -1,0 +1,6 @@
+score=0.46096
+source_submission=outputs/submissions/randomforest_submission.csv
+model=randomforest_stage2_baseline
+local_cv_qwk=0.458850
+local_cv_accuracy=0.395349
+note=Submitted leaderboard result archived before linear/ridge experiments.

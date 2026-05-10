@@ -1,0 +1,13 @@
+RandomForest Stage 2 baseline
+train_rows=2494
+public_rows=298
+private_rows=298
+features=title_x2 + venue_x2 + authors + year
+vectorizer=tfidf_word_1_2_max5000
+n_estimators=300
+cv_folds=5
+cv_accuracy=0.395349
+cv_qwk=0.458850
+public_submission=C:\Users\LG\Desktop\Study Material\DataMining\Assignment\outputs\submissions\randomforest_public_submission.csv
+private_submission=C:\Users\LG\Desktop\Study Material\DataMining\Assignment\outputs\submissions\randomforest_private_submission.csv
+combined_submission=C:\Users\LG\Desktop\Study Material\DataMining\Assignment\outputs\submissions\randomforest_submission.csv

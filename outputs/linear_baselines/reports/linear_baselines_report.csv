@@ -1,0 +1,10 @@
+rank,name,cv_qwk,cv_accuracy,combined_submission
+1,blend_top2,0.523928995687978,0.4053728949478749,C:\Users\LG\Desktop\Study Material\DataMining\Assignment\outputs\linear_baselines\submissions\blend_top2_submission.csv
+2,logreg_word_char,0.5211876542242573,0.404971932638332,C:\Users\LG\Desktop\Study Material\DataMining\Assignment\outputs\linear_baselines\submissions\logreg_word_char_submission.csv
+3,blend_top3,0.5117212581722732,0.4033680834001604,C:\Users\LG\Desktop\Study Material\DataMining\Assignment\outputs\linear_baselines\submissions\blend_top3_submission.csv
+4,logreg_word,0.5062833975088795,0.3941459502806736,C:\Users\LG\Desktop\Study Material\DataMining\Assignment\outputs\linear_baselines\submissions\logreg_word_submission.csv
+5,linearsvc_word_char,0.5051150586043667,0.39615076182838815,C:\Users\LG\Desktop\Study Material\DataMining\Assignment\outputs\linear_baselines\submissions\linearsvc_word_char_submission.csv
+6,linearsvc_word,0.4980389029393485,0.3917401764234162,C:\Users\LG\Desktop\Study Material\DataMining\Assignment\outputs\linear_baselines\submissions\linearsvc_word_submission.csv
+7,ridge_word_char,0.4976954614106298,0.38813151563753007,C:\Users\LG\Desktop\Study Material\DataMining\Assignment\outputs\linear_baselines\submissions\ridge_word_char_submission.csv
+8,ridge_word,0.49374920247903875,0.38492381716118684,C:\Users\LG\Desktop\Study Material\DataMining\Assignment\outputs\linear_baselines\submissions\ridge_word_submission.csv
+9,sgd_log_word,0.4370185231232516,0.3869286287089014,C:\Users\LG\Desktop\Study Material\DataMining\Assignment\outputs\linear_baselines\submissions\sgd_log_word_submission.csv
