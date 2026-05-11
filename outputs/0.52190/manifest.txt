@@ -1,0 +1,10 @@
+score=0.52190
+leaderboard=public
+leaderboard_fraction=approximately_50_percent_test_data
+source_submission=outputs/submissions/next_first_surname_c1_5_submission.csv
+canonical_submission=outputs/author_venue_candidates/submissions/title_first_surname_c1_5_submission.csv
+model=title_first_surname_c1_5
+local_cv_qwk=0.529371
+local_cv_accuracy=0.413392
+previous_public_best=0.51876
+note=Regularized title plus first-author surname is the new public best; compact author signal generalizes better than full author/venue variants.

@@ -1,0 +1,10 @@
+score=0.50676
+leaderboard=public
+leaderboard_fraction=approximately_50_percent_test_data
+source_submission=outputs/submissions/next_author_venue_best_submission.csv
+canonical_submission=outputs/author_venue_candidates/submissions/title_full_authors_venue_c1_5_submission.csv
+model=title_full_authors_venue_c1_5
+local_cv_qwk=0.532062
+local_cv_accuracy=0.412590
+previous_public_best=0.50419
+note=Best local CV author+venue candidate improved public slightly but underperformed simpler first-author variants.

@@ -72,6 +72,14 @@ To run the TF-IDF linear/Ridge experiments and CV-selected blends:
 python train_tfidf_linear_baselines.py
 ```
 
+To run EDA and EDA-driven Logistic candidates:
+
+```bash
+python run_eda.py
+python train_eda_candidates.py
+python train_author_venue_candidates.py
+```
+
 ## Outputs
 
 The script writes:
@@ -86,6 +94,15 @@ The linear-baseline script writes:
 - `outputs/linear_baselines/submissions/*_submission.csv`
 - `outputs/linear_baselines/reports/linear_baselines_report.csv`
 - `outputs/submissions/best_cv_submission.csv`
+
+The EDA scripts write:
+
+- `outputs/eda/eda_report.md`
+- `outputs/eda/*.csv`
+- `outputs/eda_candidates/reports/eda_candidates_report.csv`
+- `outputs/submissions/next_eda_best_submission.csv`
+- `outputs/author_venue_candidates/reports/author_venue_candidates_report.csv`
+- `outputs/submissions/next_author_venue_best_submission.csv`
 
 The combined submission is reordered to match `data/raw/Test_Submission.csv`.
 

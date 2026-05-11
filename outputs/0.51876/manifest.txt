@@ -1,0 +1,10 @@
+score=0.51876
+leaderboard=public
+leaderboard_fraction=approximately_50_percent_test_data
+source_submission=outputs/submissions/next_first_full_venue_submission.csv
+canonical_submission=outputs/author_venue_candidates/submissions/title_first_full_venue_c3_submission.csv
+model=title_first_full_venue_c3
+local_cv_qwk=0.531118
+local_cv_accuracy=0.414996
+previous_public_best=0.50676
+note=Full first-author plus venue beat full author list on public despite slightly lower local CV.

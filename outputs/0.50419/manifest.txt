@@ -1,0 +1,9 @@
+score=0.50419
+leaderboard=public
+leaderboard_fraction=approximately_50_percent_test_data
+source_submission=outputs/submissions/next_eda_best_submission.csv
+model=title_first_author_word_char
+local_cv_qwk=0.526064
+local_cv_accuracy=0.413392
+previous_public_best=0.48078
+note=EDA-driven title plus first-author LogisticRegression word+char candidate became the new public best.
