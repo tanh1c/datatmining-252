@@ -298,3 +298,34 @@ Next experiments:
 - Add venue-year-normalized citation percentiles instead of raw citation count.
 - Try small blends between `0.63064` OpenAlex Huber and `0.62820` Ridge anchor
   to reduce private leaderboard risk.
+
+## OpenAlex Title Search + Blend Follow-Up
+
+Implemented `train_openalex_title_meta.py` to make the external-feature path
+reproducible. The script expands OpenAlex features with title search for rows
+without DOI, adds citation velocity and venue/year percentile features, then
+trains Huber/Ridge meta candidates.
+
+Coverage after title search:
+
+- Train: `1455` DOI matches, `742` title matches, `297` no OpenAlex match.
+- Public test: `177` DOI matches, `100` title matches, `21` no match.
+- Private test: `182` DOI matches, `93` title matches, `23` no match.
+
+Best title-search candidate:
+
+- `outputs/submissions/next_openalex_title_meta_submission.csv`
+- Local OOF QWK `0.603484`
+- Distribution `{1:252, 2:124, 3:119, 4:45, 5:56}`
+
+Best private-safe blend:
+
+- `outputs/submissions/next_private_safe_blend_submission.csv`
+- Blend: `65%` OpenAlex DOI-only Huber + `35%` Ridge `0.62820` anchor.
+- Local OOF QWK `0.607028`
+- Distribution `{1:198, 2:197, 3:114, 4:32, 5:55}`
+
+Submit `next_private_safe_blend_submission.csv` first. It has the strongest OOF
+so far and directly tests whether a conservative blend between the two
+public-proven anchors improves public LB. Submit the title-search candidate only
+as a second probe because its OOF is lower than the DOI-only OpenAlex model.

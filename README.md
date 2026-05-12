@@ -84,6 +84,16 @@ python train_ridge_threshold_ensemble.py
 python make_ridge_threshold_variants.py
 ```
 
+To run the OpenAlex external-metadata pipeline and private-safe blends:
+
+```bash
+python train_openalex_title_meta.py
+```
+
+This resumes `outputs/external/openalex_title_features.csv`, writes enriched
+OpenAlex reports to `outputs/openalex_title_meta/`, and writes blend candidates
+to `outputs/private_safe_blends/`.
+
 ## Outputs
 
 The script writes:
@@ -116,6 +126,11 @@ The EDA scripts write:
 - `outputs/submissions/next_ridge_threshold_submission.csv`
 - `outputs/ridge_threshold_variants/reports/ridge_threshold_variants_report.csv`
 - `outputs/submissions/next_ridge_threshold_variant_submission.csv`
+- `outputs/external/openalex_title_features.csv`
+- `outputs/openalex_title_meta/reports/openalex_title_meta_candidates.csv`
+- `outputs/private_safe_blends/reports/private_safe_blend_candidates.csv`
+- `outputs/submissions/next_openalex_title_meta_submission.csv`
+- `outputs/submissions/next_private_safe_blend_submission.csv`
 
 The combined submission is reordered to match `data/raw/Test_Submission.csv`.
 
