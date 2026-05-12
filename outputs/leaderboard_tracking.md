@@ -253,3 +253,48 @@ Next threshold tests should probe just outside the plateau:
 - Avoid large jumps beyond 58 because OOF already drops at that point.
 - Keep labels `1` and `2` unchanged; all confirmed gains came from moving
   boundary mass between labels `3`, `4`, and `5`.
+
+## After 0.63064
+
+Submitted `outputs/openalex_meta/submissions/openalex_huber_meta_w1.00_submission.csv`
+and received public score `0.63064`, improving over the Ridge threshold anchor
+`0.62820`.
+
+This candidate uses a Huber meta-regressor over the Ridge 5x5 continuous score,
+OOF metadata priors, and OpenAlex DOI features. The OpenAlex cache is stored at
+`outputs/external/openalex_doi_features.csv` with these columns:
+
+- `doi_norm`
+- `openalex_found`
+- `openalex_error`
+- `openalex_id`
+- `openalex_title`
+- `openalex_year`
+- `cited_by_count`
+- `referenced_works_count`
+- `fwci`
+- `is_retracted`
+
+OpenAlex coverage:
+
+- `1813` unique DOI records queried.
+- `1810` DOI records found in OpenAlex.
+- Train row coverage: `58.34%`.
+- Test row coverage: `60.23%`.
+
+Important interpretation:
+
+- Raw citation count is not a simple monotonic quality feature here; its direct
+  correlation with label was weak/slightly negative.
+- The signal becomes useful when combined with Ridge score, venue/year/author
+  priors, and robust regression.
+- This validates the next direction: external scholarly metadata plus
+  private-safe meta-modeling, not threshold-only tuning.
+
+Next experiments:
+
+- Expand OpenAlex coverage for Semantic Scholar URL rows using title search.
+- Add citation velocity, e.g. citations per year since publication.
+- Add venue-year-normalized citation percentiles instead of raw citation count.
+- Try small blends between `0.63064` OpenAlex Huber and `0.62820` Ridge anchor
+  to reduce private leaderboard risk.

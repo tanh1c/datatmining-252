@@ -4,23 +4,23 @@ Updated: 2026-05-12
 
 ## Best Public Score
 
-- Public score: `0.62820`
-- Submission: `outputs/submissions/next_ridge_label4_51_submission.csv`
-- Tied submission: `outputs/submissions/next_ridge_label4_55_submission.csv`
-- Archive: `outputs/0.62820/`
+- Public score: `0.63064`
+- Submission: `outputs/openalex_meta/submissions/openalex_huber_meta_w1.00_submission.csv`
+- Previous anchor: `outputs/submissions/next_ridge_label4_51_submission.csv` scored `0.62820`
+- Archive: `outputs/0.63064/`
 
 ## Method Summary
 
-The current best method is a repeated-CV Ridge score ensemble with threshold
-tuning for the ordinal label scale `1 -> 5`.
+The current best method is an OpenAlex-enriched Huber meta-regressor over the
+repeated-CV Ridge score anchor, with threshold tuning for the ordinal label
+scale `1 -> 5`.
 
-Instead of training a classifier directly, it treats the target label as a
-continuous paper-quality score. Ridge predicts this score, then four thresholds
-convert the score back into labels `1, 2, 3, 4, 5`.
+Instead of training a classifier directly, it predicts a continuous paper-quality
+score, then four thresholds convert the score back into labels `1, 2, 3, 4, 5`.
 
 ## Features
 
-Only stable text fields are used:
+The score anchor uses stable text fields:
 
 - `title_clean`
 - `authors_clean`
@@ -33,7 +33,35 @@ Vectorization:
 | `title_clean` | `char_wb` TF-IDF | ngram `(3, 5)`, `min_df=2`, `max_features=10000`, `sublinear_tf=True` |
 | `authors_clean` | word TF-IDF | ngram `(1, 2)`, `min_df=2`, `max_features=4000`, `sublinear_tf=True` |
 
-Not used in the best method:
+The OpenAlex meta layer adds:
+
+- Ridge 5x5 continuous score
+- OOF target-encoded `venue`, `year`, and first-author surname
+- DOI-level OpenAlex fields: `cited_by_count`, `referenced_works_count`, `fwci`,
+  `openalex_year`, and `is_retracted`
+- Basic metadata such as title length, author count, and missing-author flag
+
+OpenAlex cache:
+
+```text
+outputs/external/openalex_doi_features.csv
+```
+
+Cached columns:
+
+```text
+doi_norm, openalex_found, openalex_error, openalex_id, openalex_title,
+openalex_year, cited_by_count, referenced_works_count, fwci, is_retracted
+```
+
+Coverage:
+
+- `1813` unique DOI records queried
+- `1810` found in OpenAlex
+- Train row coverage: `58.34%`
+- Test row coverage: `60.23%`
+
+Not used in the original Ridge anchor:
 
 - `venue`
 - `year`
@@ -44,7 +72,7 @@ Not used in the best method:
 
 ## Model
 
-Base model:
+Ridge anchor:
 
 ```text
 Ridge(alpha=8.0, solver="lsqr")
@@ -64,6 +92,15 @@ For each fold, TF-IDF is fit only on the training fold, then Ridge predicts:
 - private test score
 
 All test scores are averaged across the 25 fold/seed models.
+
+Meta-model:
+
+```text
+HuberRegressor(alpha=0.01, epsilon=1.5, max_iter=1000)
+```
+
+The best OpenAlex candidate had local OOF QWK `0.606685`, MAE `0.840016`, and
+test label distribution `{1:234, 2:154, 3:111, 4:46, 5:51}`.
 
 ## Thresholds
 
@@ -109,6 +146,11 @@ showed that the original 5x5 Ridge model under-predicted label `4`; widening
 the label-4 interval improved public score from `0.60804` to `0.62463`, then
 to `0.62820`.
 
+The OpenAlex result shows that external scholarly metadata adds signal beyond
+title and author text. Raw citation count alone is weak, but as part of a
+regularized meta-model with venue/year/author priors, it improved public score
+from `0.62820` to `0.63064`.
+
 ## Reproduce
 
 Train the base Ridge 5x5 score ensemble:
@@ -126,16 +168,18 @@ python make_ridge_threshold_variants.py
 Best current submission:
 
 ```text
-outputs/submissions/next_ridge_label4_51_submission.csv
+outputs/openalex_meta/submissions/openalex_huber_meta_w1.00_submission.csv
 ```
 
 ## Current Follow-Up Candidates
 
-The next threshold-only experiments keep the same Ridge 5x5 alpha=8 scores and
-increase label `4` slightly beyond the current best distribution:
+The next experiments should use `0.63064` as the new primary anchor:
 
-| Submission | Label distribution | Difference vs `0.62463` |
-| --- | --- | ---: |
-| `outputs/submissions/next_ridge_label4_51_submission.csv` | `{1:237, 2:183, 3:75, 4:51, 5:50}` | 5 rows |
-| `outputs/submissions/next_ridge_label4_55_submission.csv` | `{1:237, 2:183, 3:71, 4:55, 5:50}` | 9 rows |
-| `outputs/submissions/next_ridge_label4_58_submission.csv` | `{1:237, 2:183, 3:68, 4:58, 5:50}` | 12 rows |
+| Candidate | Why |
+| --- | --- |
+| Small blend: OpenAlex Huber + Ridge `0.62820` | Reduce private risk while keeping the validated external signal |
+| OpenAlex title-search enrichment | Fill rows that only have Semantic Scholar URLs and no DOI |
+| Citation velocity / venue-year percentile | Normalize citation signal by paper age and venue-year context |
+
+Keep the old threshold-only Ridge candidates as fallback anchors, not as the
+main search direction.
