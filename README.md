@@ -94,6 +94,16 @@ This resumes `outputs/external/openalex_title_features.csv`, writes enriched
 OpenAlex reports to `outputs/openalex_title_meta/`, and writes blend candidates
 to `outputs/private_safe_blends/`.
 
+To run the broader scholarly metadata pipeline:
+
+```bash
+python train_scholarly_meta.py
+```
+
+This caches Semantic Scholar, Crossref, and OpenCitations features under
+`outputs/external/`, writes reports to `outputs/scholarly_meta/`, and creates
+`outputs/submissions/next_scholarly_meta_submission.csv`.
+
 ## Outputs
 
 The script writes:
@@ -131,6 +141,11 @@ The EDA scripts write:
 - `outputs/private_safe_blends/reports/private_safe_blend_candidates.csv`
 - `outputs/submissions/next_openalex_title_meta_submission.csv`
 - `outputs/submissions/next_private_safe_blend_submission.csv`
+- `outputs/external/semantic_scholar_features.csv`
+- `outputs/external/crossref_features.csv`
+- `outputs/external/opencitations_features.csv`
+- `outputs/scholarly_meta/reports/scholarly_meta_candidates.csv`
+- `outputs/submissions/next_scholarly_meta_submission.csv`
 
 The combined submission is reordered to match `data/raw/Test_Submission.csv`.
 

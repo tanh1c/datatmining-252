@@ -1,0 +1,4 @@
+source_split,oa_source,crossref_found,coci_found,s2_source
+private_test,"{'doi': 182, 'title': 93, 'none': 23}","{'True': 182, 'nan': 116}","{'True': 182, 'nan': 116}","{'doi': 176, 'none': 122}"
+public_test,"{'doi': 177, 'title': 100, 'none': 21}","{'True': 177, 'nan': 121}","{'True': 177, 'nan': 121}","{'doi': 167, 'none': 131}"
+train,"{'doi': 1455, 'title': 742, 'none': 297}","{'True': 1458, 'nan': 1036}","{'True': 1458, 'nan': 1036}","{'doi': 1317, 'none': 1177}"

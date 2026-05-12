@@ -329,3 +329,25 @@ Submit `next_private_safe_blend_submission.csv` first. It has the strongest OOF
 so far and directly tests whether a conservative blend between the two
 public-proven anchors improves public LB. Submit the title-search candidate only
 as a second probe because its OOF is lower than the DOI-only OpenAlex model.
+
+## Scholarly Sources Follow-Up
+
+Implemented `train_scholarly_meta.py` to add Semantic Scholar, Crossref, and
+OpenCitations COCI features on top of the OpenAlex caches.
+
+New caches:
+
+- `outputs/external/semantic_scholar_features.csv`: `3047` lookups, `1656` found.
+- `outputs/external/crossref_features.csv`: `1813` DOI lookups, all found.
+- `outputs/external/opencitations_features.csv`: `1813` DOI lookups, all found.
+
+Best combined candidate:
+
+- `outputs/submissions/next_scholarly_meta_submission.csv`
+- Local OOF QWK `0.602525`
+- Distribution `{1:216, 2:177, 3:107, 4:39, 5:57}`
+
+This is lower than the OpenAlex DOI-only Huber candidate (`0.606685`) and the
+private-safe blend (`0.607028`). Conclusion: the sources were crawled
+successfully, but an all-source feature dump adds noise. Do not submit this
+candidate before `next_private_safe_blend_submission.csv`.
