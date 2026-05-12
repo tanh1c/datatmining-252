@@ -351,3 +351,32 @@ This is lower than the OpenAlex DOI-only Huber candidate (`0.606685`) and the
 private-safe blend (`0.607028`). Conclusion: the sources were crawled
 successfully, but an all-source feature dump adds noise. Do not submit this
 candidate before `next_private_safe_blend_submission.csv`.
+
+## Scholarly Feature Selection
+
+Ran `analyze_scholarly_feature_selection.py` to reduce noise from the new
+external-source features. The key result is that compact feature groups are
+better than the all-source dump.
+
+Best group:
+
+- `opencitations_core`
+- Features: `coci_found`, `log_coci_citation_count`
+- Model: Huber meta-model blended with Ridge anchor
+- Best blend: `65%` filtered external model + `35%` Ridge anchor
+- Local OOF QWK: `0.608147`
+- Distribution: `{1:216, 2:176, 3:118, 4:35, 5:51}`
+- Submission: `outputs/submissions/next_filtered_scholarly_submission.csv`
+
+Feature-family ranking by OOF:
+
+1. `opencitations_core`: `0.608147`
+2. `source_agreement`: `0.607076`
+3. `base_no_external`: `0.605850`
+4. `openalex_core`: `0.605720`
+5. `crossref_core`: `0.604444`
+
+Conclusion: for now, keep **COCI citation count** as the cleanest new external
+signal. Semantic Scholar and Crossref contain useful-looking fields, but adding
+them wholesale is noisy. Submit `next_filtered_scholarly_submission.csv` before
+the broader `next_scholarly_meta_submission.csv`.

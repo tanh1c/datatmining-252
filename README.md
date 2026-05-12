@@ -104,6 +104,15 @@ This caches Semantic Scholar, Crossref, and OpenCitations features under
 `outputs/external/`, writes reports to `outputs/scholarly_meta/`, and creates
 `outputs/submissions/next_scholarly_meta_submission.csv`.
 
+To rank and filter noisy scholarly features:
+
+```bash
+python analyze_scholarly_feature_selection.py
+```
+
+This writes feature-selection reports to `outputs/feature_selection/` and creates
+`outputs/submissions/next_filtered_scholarly_submission.csv`.
+
 ## Outputs
 
 The script writes:
@@ -146,6 +155,8 @@ The EDA scripts write:
 - `outputs/external/opencitations_features.csv`
 - `outputs/scholarly_meta/reports/scholarly_meta_candidates.csv`
 - `outputs/submissions/next_scholarly_meta_submission.csv`
+- `outputs/feature_selection/reports/scholarly_feature_group_evaluation.csv`
+- `outputs/submissions/next_filtered_scholarly_submission.csv`
 
 The combined submission is reordered to match `data/raw/Test_Submission.csv`.
 
