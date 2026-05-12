@@ -78,6 +78,10 @@ To run EDA and EDA-driven Logistic candidates:
 python run_eda.py
 python train_eda_candidates.py
 python train_author_venue_candidates.py
+python train_best_tuning.py
+python train_xgboost_candidates.py
+python train_ridge_threshold_ensemble.py
+python make_ridge_threshold_variants.py
 ```
 
 ## Outputs
@@ -103,6 +107,15 @@ The EDA scripts write:
 - `outputs/submissions/next_eda_best_submission.csv`
 - `outputs/author_venue_candidates/reports/author_venue_candidates_report.csv`
 - `outputs/submissions/next_author_venue_best_submission.csv`
+- `outputs/best_tuning/reports/best_tuning_report.csv`
+- `outputs/best_tuning/reports/first_author_bias_audit.md`
+- `outputs/submissions/next_best_tuned_submission.csv`
+- `outputs/xgboost_candidates/reports/xgboost_candidates_report.csv`
+- `outputs/submissions/next_xgboost_best_submission.csv`
+- `outputs/ridge_threshold/reports/*_metrics.csv`
+- `outputs/submissions/next_ridge_threshold_submission.csv`
+- `outputs/ridge_threshold_variants/reports/ridge_threshold_variants_report.csv`
+- `outputs/submissions/next_ridge_threshold_variant_submission.csv`
 
 The combined submission is reordered to match `data/raw/Test_Submission.csv`.
 

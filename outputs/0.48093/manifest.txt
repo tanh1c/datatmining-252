@@ -1,0 +1,11 @@
+score=0.48093
+leaderboard=public
+leaderboard_fraction=approximately_50_percent_test_data
+source_submission=outputs/submissions/next_xgboost_best_submission.csv
+canonical_submission=outputs/xgboost_candidates/submissions/xgb_title_year_d2_5k_submission.csv
+model=xgb_title_year_d2_5k
+features=title + year
+local_cv_qwk=0.444144
+local_cv_accuracy=0.362871
+current_public_best=0.52454
+note=Direct XGBoost on sparse TF-IDF underperformed the Logistic anchor; local CV correctly warned against this direction.

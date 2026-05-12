@@ -1,0 +1,11 @@
+score=0.60804
+leaderboard=public
+leaderboard_fraction=approximately_50_percent_test_data
+source_submission=outputs/submissions/next_ridge_threshold_5x5_submission.csv
+canonical_submission=outputs/ridge_threshold/submissions/ridge_threshold_5fold_5seed_891e6ee4_submission.csv
+model=ridge_threshold_5fold_5seed_891e6ee4
+features=title_clean word+char tfidf + authors_clean word tfidf
+local_oof_qwk=0.596665
+local_mae=0.852847
+local_adjacent_accuracy=0.791500
+note=Repeated-CV Ridge threshold 5x5 became the new public best and beat the external 0.59759 reference.

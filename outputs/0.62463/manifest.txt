@@ -1,0 +1,12 @@
+score=0.62463
+leaderboard=public
+leaderboard_fraction=approximately_50_percent_test_data
+source_submission=outputs/submissions/next_ridge_label4_more_mid_submission.csv
+canonical_submission=outputs/ridge_threshold_variants/submissions/ridge5x5_label4_more_mid_submission.csv
+model=ridge5x5_label4_more_mid
+base_model=ridge_threshold_5fold_5seed_891e6ee4
+features=title_clean word+char tfidf + authors_clean word tfidf
+local_oof_qwk=0.598151
+label_distribution={1:237,2:183,3:79,4:46,5:51}
+diff_vs_0.60804_anchor=18
+note=Mid label-4 threshold expansion is the new public best; public split rewards more label-4 predictions than the original 5x5 thresholds.

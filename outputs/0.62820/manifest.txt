@@ -1,0 +1,10 @@
+score=0.62820
+leaderboard=public
+leaderboard_fraction=approximately_50_percent_test_data
+source_submission_a=outputs/submissions/next_ridge_label4_51_submission.csv
+source_submission_b=outputs/submissions/next_ridge_label4_55_submission.csv
+base_model=ridge_threshold_5fold_5seed_891e6ee4
+features=title_clean word+char tfidf + authors_clean word tfidf
+variant_a=ridge5x5_label4_more_50, local_oof_qwk=0.597188, label_distribution={1:237,2:183,3:75,4:51,5:50}, diff_vs_0.62463=5
+variant_b=ridge5x5_label4_more_52, local_oof_qwk=0.597636, label_distribution={1:237,2:183,3:71,4:55,5:50}, diff_vs_0.62463=9
+note=Both 51-label4 and 55-label4 threshold variants reached the same public score; this suggests a small plateau around 51-55 label-4 predictions.

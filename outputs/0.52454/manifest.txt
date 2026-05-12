@@ -1,0 +1,11 @@
+score=0.52454
+leaderboard=public
+leaderboard_fraction=approximately_50_percent_test_data
+source_submission=outputs/submissions/next_best_tuned_submission.csv
+canonical_submission=outputs/best_tuning/submissions/title_first_surname_c0_6_submission.csv
+model=title_first_surname_c0_6
+features=title + title + first_author_surname
+local_cv_qwk=0.535162
+local_cv_accuracy=0.415397
+previous_public_best=0.52190
+note=Lower LogisticRegression C improved both local CV and public score while keeping the compact title plus first-author surname feature set.

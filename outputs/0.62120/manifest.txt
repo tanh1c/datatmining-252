@@ -1,0 +1,12 @@
+score=0.62120
+leaderboard=public
+leaderboard_fraction=approximately_50_percent_test_data
+source_submission=outputs/submissions/next_ridge_label4_more_small_submission.csv
+canonical_submission=outputs/ridge_threshold_variants/submissions/ridge5x5_label4_more_small_submission.csv
+model=ridge5x5_label4_more_small
+base_model=ridge_threshold_5fold_5seed_891e6ee4
+features=title_clean word+char tfidf + authors_clean word tfidf
+local_oof_qwk=0.597047
+label_distribution={1:237,2:183,3:85,4:39,5:52}
+diff_vs_0.60804_anchor=11
+note=Small label-4 threshold expansion improved the Ridge 5x5 anchor substantially.

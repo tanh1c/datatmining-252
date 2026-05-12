@@ -1,0 +1,11 @@
+score=0.59612
+leaderboard=public
+leaderboard_fraction=approximately_50_percent_test_data
+source_submission=outputs/submissions/next_ridge_threshold_10x10_submission.csv
+canonical_submission=outputs/ridge_threshold/submissions/ridge_threshold_10fold_10seed_0000b675_submission.csv
+model=ridge_threshold_10fold_10seed_0000b675
+features=title_clean word+char tfidf + authors_clean word tfidf
+local_oof_qwk=0.605097
+local_mae=0.846832
+local_adjacent_accuracy=0.787891
+note=10x10 had higher local OOF but lower public score, likely due to threshold/label-distribution risk around middle labels.
