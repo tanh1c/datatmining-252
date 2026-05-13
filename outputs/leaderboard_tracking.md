@@ -31,6 +31,7 @@ should not be treated as the final objective.
 | 0.62820 | `outputs/submissions/next_ridge_label4_55_submission.csv` | Ridge 5x5 alpha=8 threshold variant with 55 label-4 predictions | 0.597636 | Tied best public score, only 4 rows different from the 51-label4 variant. |
 | pending | `outputs/submissions/next_ridge_label4_58_submission.csv` | Ridge 5x5 alpha=8 threshold variant with 58 label-4 predictions | 0.596143 | More aggressive label-4 expansion; lower OOF, submit only if more tests are allowed. |
 | **0.69972** | `outputs/specter2_finetune/specter2_finetune_submission.csv` | **Fine-tuned SPECTER2 base + regression head, 5 folds x 3 seeds, threshold tuning** | **0.638866** | **NEW BEST — +0.069 jump over previous best. Semantic encoder of `title + abstract` with fine-tuning unlocks the topic-relevance axis.** |
+| 0.68737 | `outputs/specter2_finetune_5seed/specter2_finetune_submission.csv` | Same notebook, **5 seeds** instead of 3 (`[252,253,254,255,256]`), 25 models | 0.644537 | OOF higher than 0.69972 but public **lower by 0.012**. Threshold drift inflated predicted label 2 to 36% vs train 21%. See `outputs/lessons_learned.md` (L1). |
 
 ## Current Takeaways
 
@@ -451,3 +452,31 @@ The frozen-SPECTER2 attempt (step 3a) only reached 0.49 OOF and predicted just
 4. **Token length sweep**: 256 -> 384 / 512 max_len. Some abstracts are 1500+
    chars, so longer context may help.
 5. **SPECTER2 augmented base** (`allenai/specter2_aug2023refresh_base`).
+
+
+## After 0.68737 — 5-seed regression confirms the threshold-drift trap
+
+A 5-seed rerun of the exact same notebook (only `SEEDS` extended from
+`[252, 253, 254]` to `[252, 253, 254, 255, 256]`) raised OOF QWK from
+`0.6389` to `0.6445` (+0.006) but lowered public LB from `0.69972` to
+`0.68737` (−0.012).
+
+Threshold 1 dropped from `1.808` to `1.597`, which moved 72 borderline papers
+from label 1 to label 2. Predicted public split distribution went from
+`{1:39%, 2:22%, 3:20%, 4:11%, 5:9%}` (close to train) to `{1:29%, 2:36%,
+3:16%, 4:10%, 5:9%}` (label 2 inflated to ~2x its expected share). The
+`differential_evolution` optimiser is greedy on OOF QWK and does not penalise
+distribution drift.
+
+This is the **second** time we hit this pattern (the first was 5x5 Ridge
+`0.60804` vs 10x10 Ridge `0.59612` last week). The rule is now codified in
+`outputs/lessons_learned.md` (L1, L4).
+
+**Action items folded into next steps:**
+
+1. Keep `0.69972` as the SPECTER2 anchor for stacking. Use the `0.68737` OOF
+   + test scores as a *diversity feature* alongside it.
+2. Step 6 must implement a *distribution-constrained* threshold tuner that
+   penalises `|pred_share_k - train_share_k|`.
+3. When a future submission gives higher OOF but a shifted distribution, do
+   not promote it; retune thresholds with the constraint first.
