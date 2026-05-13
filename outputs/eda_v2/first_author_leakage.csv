@@ -1,0 +1,3 @@
+split,test_rows,with_first_author_train_match,share_with_first_author_train_match,single_train_paper_anchor_rows,share_single_anchor,train_count_mean_when_matched,train_label_std_mean_when_matched
+public,298,122,0.40939597315436244,39,0.13087248322147652,3.7704918032786887,0.7584949289355012
+private,298,132,0.4429530201342282,49,0.1644295302013423,3.287878787878788,0.6302760383397764
