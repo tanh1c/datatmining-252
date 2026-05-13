@@ -30,6 +30,7 @@ should not be treated as the final objective.
 | 0.62820 | `outputs/submissions/next_ridge_label4_51_submission.csv` | Ridge 5x5 alpha=8 threshold variant with 51 label-4 predictions | 0.597188 | New best public score, tied with the 55-label4 variant. Closest to the prior 0.62463 anchor. |
 | 0.62820 | `outputs/submissions/next_ridge_label4_55_submission.csv` | Ridge 5x5 alpha=8 threshold variant with 55 label-4 predictions | 0.597636 | Tied best public score, only 4 rows different from the 51-label4 variant. |
 | pending | `outputs/submissions/next_ridge_label4_58_submission.csv` | Ridge 5x5 alpha=8 threshold variant with 58 label-4 predictions | 0.596143 | More aggressive label-4 expansion; lower OOF, submit only if more tests are allowed. |
+| **0.69972** | `outputs/specter2_finetune/specter2_finetune_submission.csv` | **Fine-tuned SPECTER2 base + regression head, 5 folds x 3 seeds, threshold tuning** | **0.638866** | **NEW BEST — +0.069 jump over previous best. Semantic encoder of `title + abstract` with fine-tuning unlocks the topic-relevance axis.** |
 
 ## Current Takeaways
 
@@ -406,3 +407,47 @@ Decision:
   validation idea.
 - Future improvements should focus on understanding why the `0.63064` OpenAlex
   model works, not on adding more raw impact sources.
+
+
+
+## After 0.69972 — SPECTER2 Fine-tune (NEW BEST)
+
+A fine-tuned SPECTER2 encoder on `title + abstract` pushed public LB from
+`0.63064` to **`0.69972`**, a `+0.069` jump — the largest in the project so far.
+
+The full recipe is archived in `outputs/0.69972/manifest.md`. Highlights:
+
+- Step 1: confirmed the hypothesis that Label = ASP/AI-symbolic topic relevance
+  (rule-based proxy QWK 0.2589 from 5 hand-written keyword groups, train-mean
+  Label `3.92` vs `2.29` for ASP-keyword vs others).
+- Step 2: multi-source abstract crawl (Semantic Scholar, OpenAlex, Crossref,
+  OpenAlex title-search) -> `outputs/external/abstracts_merged_v2.csv` covering
+  93.7% of train+test rows.
+- Step 3b: fine-tuned `allenai/specter2_base` with a `Linear(768->1)` head,
+  SmoothL1 loss on the float Label, AdamW with split LR (encoder `2e-5`, head
+  `1e-3`), 5 epochs, mixed precision, 5 folds x 3 seeds = 15 models, OOF
+  threshold tuning. Notebook: `notebooks/step3b_specter2_finetune.ipynb`.
+- OOF QWK `0.6389`, label distribution `{1:252, 2:128, 3:102, 4:63, 5:51}`,
+  public/private label-5 split 26/25 (balanced).
+
+Why it works: SPECTER2 base already encodes scientific paper similarity, so
+fine-tuning re-shapes that representation around the *label* axis with very
+little data. TF-IDF Ridge plateaued at 0.628 because it cannot semantically
+unify "ASP" / "answer set programming" / "stable model"; SPECTER2 does.
+
+The frozen-SPECTER2 attempt (step 3a) only reached 0.49 OOF and predicted just
+14 label-5 rows out of 596 — fine-tuning is what makes the difference.
+
+### Next directions
+
+1. **Stacking (Step 5)**: blend `0.69972` SPECTER2-finetune OOF with Ridge
+   `0.62820` OOF and OpenAlex `0.63064` OOF. Three near-uncorrelated signals
+   (lexical, semantic, citation) usually add +0.01-0.03.
+2. **5-seed rerun** of the same notebook (~50 min on A100): fold log shows seed
+   `254` gave higher per-fold QWK (`0.64-0.66`); two more seeds should push OOF
+   to `~0.645-0.65`.
+3. **LLM scoring (Step 4)**: zero/few-shot ASP-relevance label as an extra
+   meta-feature.
+4. **Token length sweep**: 256 -> 384 / 512 max_len. Some abstracts are 1500+
+   chars, so longer context may help.
+5. **SPECTER2 augmented base** (`allenai/specter2_aug2023refresh_base`).
