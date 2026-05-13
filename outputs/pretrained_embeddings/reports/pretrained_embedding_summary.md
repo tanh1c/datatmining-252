@@ -1,0 +1,20 @@
+# Pretrained Embedding Candidates
+
+Model: `BAAI/bge-small-en-v1.5`
+
+These candidates test whether pretrained semantic embeddings capture the topic axis behind labels better than hand-written lexicons.
+
+## Top Candidates
+
+| candidate                   | hf_model               | text_variant        | dense_model   |   alpha |   folds |               seeds |   oof_qwk |      mae | thresholds                                                  | train_distribution                       | test_distribution                      | submission                                                                                                                                             |
+|:----------------------------|:-----------------------|:--------------------|:--------------|--------:|--------:|--------------------:|----------:|---------:|:------------------------------------------------------------|:-----------------------------------------|:---------------------------------------|:-------------------------------------------------------------------------------------------------------------------------------------------------------|
+| bge_title_ridge_a3          | BAAI/bge-small-en-v1.5 | title               | ridge         |       3 |       5 | 252,253,254,255,256 |  0.581374 | 0.848436 | 1.896851079535,2.666190183386,3.146665086697,3.974139043094 | {1: 791, 2: 723, 3: 395, 4: 390, 5: 195} | {1: 189, 2: 223, 3: 87, 4: 62, 5: 35}  | C:\Users\LG\Desktop\Study Material\DataMining\Assignment\outputs\pretrained_embeddings\submissions\bge_title_ridge_a3_7bbeacae_submission.csv          |
+| bge_title_abs_ridge_a3      | BAAI/bge-small-en-v1.5 | title_abstract      | ridge         |       3 |       5 | 252,253,254,255,256 |  0.509886 | 0.944667 | 1.946923835001,2.640759202652,3.242041467715,3.670288427067 | {1: 795, 2: 720, 3: 475, 4: 241, 5: 263} | {1: 225, 2: 185, 3: 101, 4: 38, 5: 47} | C:\Users\LG\Desktop\Study Material\DataMining\Assignment\outputs\pretrained_embeddings\submissions\bge_title_abs_ridge_a3_d23a1968_submission.csv      |
+| bge_title_abs_meta_ridge_a3 | BAAI/bge-small-en-v1.5 | title_abstract_meta | ridge         |       3 |       5 | 252,253,254,255,256 |  0.507205 | 0.971131 | 1.876175994176,2.560631431015,2.983190069537,3.562223183819 | {1: 735, 2: 734, 3: 334, 4: 375, 5: 316} | {1: 205, 2: 183, 3: 85, 4: 72, 5: 51}  | C:\Users\LG\Desktop\Study Material\DataMining\Assignment\outputs\pretrained_embeddings\submissions\bge_title_abs_meta_ridge_a3_a4997e89_submission.csv |
+| bge_title_abs_huber         | BAAI/bge-small-en-v1.5 | title_abstract      | huber         |       8 |       5 | 252,253,254,255,256 |  0.50563  | 0.951885 | 1.947173663256,2.568476982389,3.245517890651,3.934876973080 | {1: 851, 2: 606, 3: 504, 4: 329, 5: 204} | {1: 247, 2: 152, 3: 101, 4: 61, 5: 35} | C:\Users\LG\Desktop\Study Material\DataMining\Assignment\outputs\pretrained_embeddings\submissions\bge_title_abs_huber_f779c1f5_submission.csv         |
+
+## Recommendation
+
+- Compare public LB against the current `0.63064` OpenAlex DOI-only Huber anchor.
+- If embeddings win, stop optimizing citation/impact features and focus on semantic text modeling.
+- If embeddings lose, use their OOF/test disagreements to identify topic-specific threshold fixes.

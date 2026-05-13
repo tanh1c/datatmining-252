@@ -1,0 +1,139 @@
+{
+  "method": "specter2_finetune",
+  "model": "allenai/specter2_base",
+  "folds": 5,
+  "seeds": [
+    252,
+    253,
+    254
+  ],
+  "epochs": 5,
+  "max_len": 256,
+  "batch_train": 16,
+  "lr_encoder": 2e-05,
+  "lr_head": 0.001,
+  "weight_decay": 0.01,
+  "warmup_ratio": 0.1,
+  "oof_qwk": 0.6388656273338174,
+  "oof_mae": 0.8011226944667201,
+  "oof_macro_f1": 0.4034307716691101,
+  "thresholds": [
+    1.8080229566936354,
+    2.4572919153774926,
+    3.2296865866285493,
+    4.131560616873832
+  ],
+  "label_distribution_combined": {
+    "1": 252,
+    "2": 128,
+    "3": 102,
+    "4": 63,
+    "5": 51
+  },
+  "label_distribution_public": {
+    "1": 116,
+    "2": 64,
+    "3": 59,
+    "4": 33,
+    "5": 26
+  },
+  "label_distribution_private": {
+    "1": 136,
+    "2": 64,
+    "3": 43,
+    "4": 30,
+    "5": 25
+  },
+  "fold_log": [
+    {
+      "seed": 252,
+      "fold": 1,
+      "best_round_qwk": 0.6328250350294964,
+      "minutes": 0.8
+    },
+    {
+      "seed": 252,
+      "fold": 2,
+      "best_round_qwk": 0.6076223915770268,
+      "minutes": 0.6
+    },
+    {
+      "seed": 252,
+      "fold": 3,
+      "best_round_qwk": 0.6024197976078327,
+      "minutes": 0.6
+    },
+    {
+      "seed": 252,
+      "fold": 4,
+      "best_round_qwk": 0.6279122143506455,
+      "minutes": 0.59
+    },
+    {
+      "seed": 252,
+      "fold": 5,
+      "best_round_qwk": 0.630688890478575,
+      "minutes": 0.59
+    },
+    {
+      "seed": 253,
+      "fold": 1,
+      "best_round_qwk": 0.6472324057020192,
+      "minutes": 0.59
+    },
+    {
+      "seed": 253,
+      "fold": 2,
+      "best_round_qwk": 0.5915975762380308,
+      "minutes": 0.59
+    },
+    {
+      "seed": 253,
+      "fold": 3,
+      "best_round_qwk": 0.598785291997116,
+      "minutes": 0.59
+    },
+    {
+      "seed": 253,
+      "fold": 4,
+      "best_round_qwk": 0.5915063147793579,
+      "minutes": 0.6
+    },
+    {
+      "seed": 253,
+      "fold": 5,
+      "best_round_qwk": 0.6264097506701056,
+      "minutes": 0.59
+    },
+    {
+      "seed": 254,
+      "fold": 1,
+      "best_round_qwk": 0.6567552069735476,
+      "minutes": 0.6
+    },
+    {
+      "seed": 254,
+      "fold": 2,
+      "best_round_qwk": 0.6426598465473146,
+      "minutes": 0.6
+    },
+    {
+      "seed": 254,
+      "fold": 3,
+      "best_round_qwk": 0.6099820017066111,
+      "minutes": 0.6
+    },
+    {
+      "seed": 254,
+      "fold": 4,
+      "best_round_qwk": 0.6194191130619631,
+      "minutes": 0.61
+    },
+    {
+      "seed": 254,
+      "fold": 5,
+      "best_round_qwk": 0.6040834051446291,
+      "minutes": 0.62
+    }
+  ]
+}
