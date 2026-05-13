@@ -380,3 +380,29 @@ Conclusion: for now, keep **COCI citation count** as the cleanest new external
 signal. Semantic Scholar and Crossref contain useful-looking fields, but adding
 them wholesale is noisy. Submit `next_filtered_scholarly_submission.csv` before
 the broader `next_scholarly_meta_submission.csv`.
+
+## After Scholarly Public Scores
+
+Two scholarly candidates were submitted:
+
+- `outputs/submissions/next_scholarly_meta_submission.csv`: public `0.60531`.
+- `outputs/submissions/next_filtered_scholarly_submission.csv`: public `0.61227`.
+
+Both are far below the current best `0.63064`.
+
+Interpretation:
+
+- The all-source scholarly dump is confirmed bad on public LB.
+- The filtered COCI candidate had the best local OOF (`0.608147`) but only
+  reached public `0.61227`, so its OOF gain was not leaderboard-stable.
+- This is a strong warning that external citation-style features are very noisy
+  for the public split unless they are used exactly as in the proven OpenAlex
+  DOI-only Huber candidate.
+
+Decision:
+
+- Keep `0.63064` OpenAlex DOI-only Huber as the best public anchor.
+- Do not submit more COCI/Crossref/Semantic Scholar variants without a new
+  validation idea.
+- Future improvements should focus on understanding why the `0.63064` OpenAlex
+  model works, not on adding more raw impact sources.

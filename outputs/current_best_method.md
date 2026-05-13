@@ -183,3 +183,16 @@ The next experiments should use `0.63064` as the new primary anchor:
 
 Keep the old threshold-only Ridge candidates as fallback anchors, not as the
 main search direction.
+
+## Failed Scholarly Follow-Ups
+
+Two later external-data probes did not beat the best:
+
+| Submission | Public LB | Local note |
+| --- | ---: | --- |
+| `outputs/submissions/next_scholarly_meta_submission.csv` | `0.60531` | all-source Semantic Scholar + Crossref + COCI + OpenAlex was noisy |
+| `outputs/submissions/next_filtered_scholarly_submission.csv` | `0.61227` | COCI-only feature selection had high OOF but poor public transfer |
+
+Conclusion: keep the OpenAlex DOI-only Huber candidate as the best method. More
+external citation sources are not automatically helpful and can overfit local
+OOF.
