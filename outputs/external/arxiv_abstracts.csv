@@ -1,0 +1,196 @@
+﻿source_split,id,source_title,found,abstract,match_score,arxiv_id,arxiv_title,arxiv_year,error
+train,3,Agentified Argumentative Learning (short paper).,False,,0.0,,,,"ReadTimeout(ReadTimeoutError(""HTTPSConnectionPool(host='export.arxiv.org', port=443): Read timed out. (read timeout=30)""))"
+train,11,neXSim: A System for Explaining Nexus of Similarities.,False,,0.0,,,,"ReadTimeout(ReadTimeoutError(""HTTPSConnectionPool(host='export.arxiv.org', port=443): Read timed out. (read timeout=30)""))"
+train,29,LLMASP: A Framework for Mitigating Hallucinations and Supporting Symbolic Reasoning in Large Language Models.,False,,0.0,,,,HTTP 429
+train,36,Visualizing Kripke Models in LogiKEy: the Case of SDL.,False,,0.0,,,,HTTP 429
+train,45,Global Type Inference for Java using Answer Set Programming.,False,,0.0,,,,HTTP 429
+train,87,"Proceedings of the 9th Workshop on Advances in Argumentation in Artificial Intelligence (AI3 2025) co-located with the 41st International Conference on Logic Programming (ICLP 2025), Rende, Italy, September 13, 2025.",False,,0.0,,,,HTTP 429
+train,88,"Joint Proceedings of the Workshops and Doctoral Consortium of the 41st International Conference on Logic Programming (ICLP-WS-DC 2025) co-located with 41st International Conference on Logic Programming (ICLP 2025), Rende, Italy, September 9-13, 2025.",False,,0.0,,,,"ReadTimeout(ReadTimeoutError(""HTTPSConnectionPool(host='export.arxiv.org', port=443): Read timed out. (read timeout=30)""))"
+train,95,Statistical Syllogistic Tableaux.,False,,0.0,,,,"ReadTimeout(ReadTimeoutError(""HTTPSConnectionPool(host='export.arxiv.org', port=443): Read timed out. (read timeout=30)""))"
+train,103,A Framework for Defining Behavior Modes in Policy-Aware Autonomous Agents.,False,,0.0,,,,HTTP 429
+train,107,Controlled Natural Language Models.,False,,0.0,,,,HTTP 429
+train,211,Constrained Default Logic Programming.,False,,0.0,,,,HTTP 429
+train,223,Automating Defeasible Reasoning in Law with Answer Set Programming.,False,,0.0,,,,HTTP 429
+train,250,"Proceedings 38th International Conference on Logic Programming, ICLP 2022 Technical Communications / Doctoral Consortium, Haifa, Israel, 31st July 2022 - 6th August 2022.",False,,0.0,,,,"ReadTimeout(ReadTimeoutError(""HTTPSConnectionPool(host='export.arxiv.org', port=443): Read timed out. (read timeout=30)""))"
+train,251,Reasoning About Actions with EL(bot) Ontologies and Temporal Answer Sets.,False,,0.0,,,,HTTP 429
+train,264,aspmc: An Algebraic Answer Set Counter.,False,,0.0,,,,"ReadTimeout(ReadTimeoutError(""HTTPSConnectionPool(host='export.arxiv.org', port=443): Read timed out. (read timeout=30)""))"
+train,269,From Probabilistic Programming to Probabilistic Argumentation.,False,,0.0,,,,"ReadTimeout(ReadTimeoutError(""HTTPSConnectionPool(host='export.arxiv.org', port=443): Read timed out. (read timeout=30)""))"
+train,271,Theory Revision with Goal-directed ASP.,False,,0.0,,,,HTTP 429
+train,428,A Hitchhiker&apos;s Guide to Reinventing a Prolog Machine.,False,,0.0,,,,
+train,545,Using Ontology to Analyze Sentiment of Comments on Vietnamese Social Media.,False,,0.0,,,,HTTP 429
+train,546,An Experiment with LLM in Contract Extraction.,False,,0.0,,,,HTTP 429
+train,548,Formal Aspects of Strategic Reasoning.,False,,0.0,,,,HTTP 429
+train,641,"Joint Proceedings of the Joint Workshop on Knowledge Diversity and Cognitive Aspects of KR and the Workshop on Symbolic and Neuro-Symbolic Architectures for Intelligent Robotics Technology (KoDis-CAKR-SYNERGY 2024) co-located with the 21st International Conference on Principles of Knowledge Representation and Reasoning (KR 2024), Hanoi, Vietnam, November 2-8, 2024.",False,,0.0,,,,HTTP 429
+train,643,Copredication and Ontological Mutability.,False,,0.0,,,,HTTP 429
+train,646,Cognitively Adequate Complexity of Reasoning in a Description Logic.,False,,0.0,,,,"ReadTimeout(ReadTimeoutError(""HTTPSConnectionPool(host='export.arxiv.org', port=443): Read timed out. (read timeout=30)""))"
+train,647,Voting for Bins: Integrating Imprecise Probabilistic Beliefs into the Condorcet Jury Theorem.,False,,0.0,,,,"ReadTimeout(ReadTimeoutError(""HTTPSConnectionPool(host='export.arxiv.org', port=443): Read timed out. (read timeout=30)""))"
+train,648,Explaining Agent Behaviour via Causal Analysis of Mental States.,False,,0.0,,,,"ReadTimeout(ReadTimeoutError(""HTTPSConnectionPool(host='export.arxiv.org', port=443): Read timed out. (read timeout=30)""))"
+train,676,Everything You AlwaysWanted to Know About Urban Water Networks ButWere Afraid to Ask.,False,,0.0,,,,HTTP 429
+train,745,"Proceedings of 1st Workshop on AI-driven heterogeneous data management: Completing, merging, handling inconsistencies and query-answering, co-located with 20th International Conference on Principles of Knowledge Representation and Reasoning (KR 2023), Rhodes, Greece, September 3-4, 2023.",False,,0.0,,,,HTTP 429
+train,867,SEH-PILoT: A System for Property-Directed Symbol Elimination - Work in Progress (Short Paper).,False,,0.0,,,,"ReadTimeout(ReadTimeoutError(""HTTPSConnectionPool(host='export.arxiv.org', port=443): Read timed out. (read timeout=30)""))"
+train,1014,Evaluation of the ECDSA IHP Hardware Accelerator.,False,,0.0,,,,"ReadTimeout(ReadTimeoutError(""HTTPSConnectionPool(host='export.arxiv.org', port=443): Read timed out. (read timeout=30)""))"
+train,1015,Methodology Design for Dynamic Test Method Generation via Existing Module Tests.,False,,0.0,,,,HTTP 429
+train,1016,Applying Differential Privacy to Machine Learning: Challenges and Potentials.,False,,0.0,,,,
+train,1019,Distributed Domain Validation (DDV).,False,,0.0,,,,"ReadTimeout(ReadTimeoutError(""HTTPSConnectionPool(host='export.arxiv.org', port=443): Read timed out. (read timeout=30)""))"
+train,1020,Security Overview on Secure Encrypted Virtualization.,False,,0.0,,,,HTTP 429
+train,1025,Analyzing power consumption of TLS ciphers on an ESP32.,False,,0.0,,,,HTTP 429
+train,1027,ECC Based Secure Authentication Solutions.,False,,0.0,,,,HTTP 429
+train,1028,Welcome to Mozilla.,False,,0.0,,,,HTTP 429
+train,1029,Crypto (engineering) at Mozilla.,False,,0.0,,,,HTTP 429
+train,1030,A Dinosaurs view on Blockchains.,False,,0.0,,,,"ReadTimeout(ReadTimeoutError(""HTTPSConnectionPool(host='export.arxiv.org', port=443): Read timed out. (read timeout=30)""))"
+train,1031,Using machine learning techniques for hardware performance counter classification and ROP attack detection.,False,,0.0,,,,HTTP 429
+train,1034,"Towards a central, distributed and secure default cryptography parameter set.",False,,0.0,,,,HTTP 429
+train,1035,ICRC: Instant Certificate Revocation Checking using Blockchain-backed Bloom Filters.,False,,0.0,,,,HTTP 429
+train,1036,Edge computing devices assessment for cryptography and biomedical signal analysis.,False,,0.0,,,,HTTP 429
+train,1037,SLIDEDroid: A Secure Lightweight Identity for the Android Platform.,False,,0.0,,,,"ReadTimeout(ReadTimeoutError(""HTTPSConnectionPool(host='export.arxiv.org', port=443): Read timed out. (read timeout=30)""))"
+train,1039,Introduction to QPSI - Who we are and what we do Hardware.,False,,0.0,,,,HTTP 429
+train,1043,XOR Arbiter PUFs: an Empirical Approach to Input Transformations.,False,,0.0,,,,HTTP 429
+train,1044,Towards Secure Strong PUFs.,False,,0.0,,,,"ReadTimeout(ReadTimeoutError(""HTTPSConnectionPool(host='export.arxiv.org', port=443): Read timed out. (read timeout=30)""))"
+train,1045,"Artificial Intelligence in Medicine: Knowledge Representation and Transparent and Explainable Systems - AIME 2019 International Workshops, KR4HC/ProHealth and TEAAM, Poznan, Poland, June 26-29, 2019, Revised Selected Papers",False,,0.0,,,,HTTP 429
+train,1154,Universal Composability: A Comparison of Different Models.,False,,0.0,,,,HTTP 429
+train,1155,Private Function Evalutation with Universal Circuits.,False,,0.0,,,,"ReadTimeout(ReadTimeoutError(""HTTPSConnectionPool(host='export.arxiv.org', port=443): Read timed out. (read timeout=30)""))"
+train,1156,Addressing the Effects of Temperature Variations on Intrinsic Memory-Based Physical Unclonable Functions.,False,,0.0,,,,HTTP 429
+train,1158,Wiretap Coding in the Context of PUFs.,False,,0.0,,,,"ReadTimeout(ReadTimeoutError(""HTTPSConnectionPool(host='export.arxiv.org', port=443): Read timed out. (read timeout=30)""))"
+train,1159,Error-Correcting Codes for Lattice-Based Key Exchange.,False,,0.0,,,,"ReadTimeout(ReadTimeoutError(""HTTPSConnectionPool(host='export.arxiv.org', port=443): Read timed out. (read timeout=30)""))"
+train,1162,Low-Cost Countermeasure against Horizontal Bus and Address-Bit SCA.,False,,0.0,,,,HTTP 429
+train,1166,Advanced Reconfigurable Physical Unclonable Functions (AR-PUFs) and Their Security Applications.,False,,0.0,,,,HTTP 429
+train,1168,"CryptoExamples: Secure, minimal, complete, copyable and tested code examples for Crypto APIs.",False,,0.0,,,,HTTP 429
+train,1169,Cryptographic Game-style language in EasyCrypt.,False,,0.0,,,,
+train,1173,Machine Learning Based Sender Identification for Controller Area Network.,False,,0.0,,,,HTTP 429
+train,1174,Automatic Security Analysis in the Symbolic Model using Tamarin-Prover.,False,,0.0,,,,"ReadTimeout(ReadTimeoutError(""HTTPSConnectionPool(host='export.arxiv.org', port=443): Read timed out. (read timeout=30)""))"
+train,1176,Privacy-Preserving Genomics on a Large Scale.,False,,0.0,,,,HTTP 429
+train,1177,Chains and Whips - An approach to lighweight MACs.,False,,0.0,,,,"ReadTimeout(ReadTimeoutError(""HTTPSConnectionPool(host='export.arxiv.org', port=443): Read timed out. (read timeout=30)""))"
+train,1181,"Proceedings of the Joint Proceedings of Reasoning with Ambiguous and Conflicting Evidence and Recommendations in Medicine (MedRACER 2018) and the 3rd International Workshop on Ontology Modularity, Contextuality, and Evolution (WOMoCoE 2018) co-located with the 16th International Conference on Principles of Knowledge Representation and Reasoning (KR 2018), Tempe, Arizona, USA, October 29th, 2018.",False,,0.0,,,,HTTP 429
+train,1258,Preference and Priorities: A Study Based on Contrction.,False,,0.0,,,,HTTP 429
+train,1268,"Principles of Knowledge Representation and Reasoning: Proceedings of the Fifteenth International Conference, KR 2016, Cape Town, South Africa, April 25-29, 2016.",False,,0.0,,,,HTTP 429
+train,1269,"Logic Programming and Nonmonotonic Reasoning - 17th International Conference, LPNMR 2024, Dallas, TX, USA, October 11-14, 2024, Proceedings",False,,0.0,,,,HTTP 429
+train,1270,Integrating Structured Declarative Language (SDL) into ASP Chef.,False,,0.0,,,,HTTP 429
+train,1271,Answer Set Explanations via Preferred Unit-Provable Unsatisfiable Subsets.,False,,0.0,,,,HTTP 429
+train,1272,Integrating MiniZinc with ASP Chef: Browser-Based Constraint Programming for Education and Prototyping.,False,,0.0,,,,HTTP 429
+train,1274,Consequence Operators of Characterization Logics - The Case of Abstract Argumentation.,False,,0.0,,,,HTTP 429
+train,1276,Compiling Metric Temporal Answer Set Programming.,False,,0.0,,,,HTTP 429
+train,1277,On Forgetting in Assumption-Based Argumentation.,False,,0.0,,,,HTTP 429
+train,1278,Modelling Dialogues in a Concurrent Language for Argumentation.,False,,0.0,,,,HTTP 429
+train,1279,tExplain: Information Extraction with Explanations.,False,,0.0,,,,HTTP 429
+train,1280,A Fixpoint Characterisation of Temporal Equilibrium Logic.,False,,0.0,,,,HTTP 429
+train,1283,Towards Explainable Weather Forecasting Through FastLAS.,False,,0.0,,,,HTTP 429
+train,1284,A Sequent Calculus for Generalized Inductive Definitions.,False,,0.0,,,,HTTP 429
+train,1285,Deductive Systems for Logic Programs with Counting: Preliminary Report.,False,,0.0,,,,HTTP 429
+train,1286,LTLf2ASP: LTLf Bounded Satisfiability in ASP.,False,,0.0,,,,HTTP 429
+train,1287,Semantic-Based Arguments Using Logic Programming Rewriting Systems.,False,,0.0,,,,HTTP 429
+train,1289,An ASP-Based Approach to Water Distribution System Reconstruction.,False,,0.0,,,,HTTP 429
+train,1290,Using Learning from Answer Sets for Robust Question Answering with LLM.,False,,0.0,,,,HTTP 429
+train,1292,Efficiently Grounding FOL Using Bit Vectors.,False,,0.0,,,,HTTP 429
+train,1293,Monitoring and Scheduling of Semiconductor Failure Analysis Labs.,False,,0.0,,,,HTTP 429
+train,1295,A Generalisation of Epistemic Splitting Property.,False,,0.0,,,,HTTP 429
+train,1303,Enumeration of Minimal Models and MUSes in WASP.,False,,0.0,,,,HTTP 429
+train,1304,Solving Problems in the Polynomial Hierarchy with ASP(Q).,False,,0.0,,,,HTTP 429
+train,1306,A Comparative Study of Three Neural-Symbolic Approaches to Inductive Logic Programming.,False,,0.0,,,,HTTP 429
+train,1307,A Definition of Sceptical Semantics in the Constellations Approach.,False,,0.0,,,,HTTP 429
+train,1309,Tunas - Fishing for Diverse Answer Sets: A Multi-shot Trade up Strategy.,False,,0.0,,,,HTTP 429
+train,1312,DeduDeep: An Extensible Framework for Combining Deep Learning and ASP-Based Models.,False,,0.0,,,,HTTP 429
+train,1314,ASP for Flexible Payroll Management.,False,,0.0,,,,"ReadTimeout(ReadTimeoutError(""HTTPSConnectionPool(host='export.arxiv.org', port=443): Read timed out. (read timeout=30)""))"
+train,1315,Optimising Business Process Discovery Using Answer Set Programming.,False,,0.0,,,,"ReadTimeout(ReadTimeoutError(""HTTPSConnectionPool(host='export.arxiv.org', port=443): Read timed out. (read timeout=30)""))"
+train,1322,Representing Abstract Dialectical Frameworks with Binary Decision Diagrams.,False,,0.0,,,,HTTP 429
+train,1326,Reasoning About Actions with EL Ontologies and Temporal Answer Sets for DLTL.,False,,0.0,,,,"ReadTimeout(ReadTimeoutError(""HTTPSConnectionPool(host='export.arxiv.org', port=443): Read timed out. (read timeout=30)""))"
+train,1327,Inference to the Stable Explanations.,False,,0.0,,,,"ReadTimeout(ReadTimeoutError(""HTTPSConnectionPool(host='export.arxiv.org', port=443): Read timed out. (read timeout=30)""))"
+train,1328,Clingraph: ASP-Based Visualization.,False,,0.0,,,,HTTP 429
+train,1333,Learning to Rank the Distinctiveness of Behaviour in Serial Offending.,False,,0.0,,,,HTTP 429
+train,1335,A Machine Learning System to Improve the Performance of ASP Solving Based on Encoding Selection.,False,,0.0,,,,HTTP 429
+train,1338,Efficient Computation of Answer Sets via SAT Modulo Acyclicity and Vertex Elimination.,False,,0.0,,,,"ReadTimeout(ReadTimeoutError(""HTTPSConnectionPool(host='export.arxiv.org', port=443): Read timed out. (read timeout=30)""))"
+train,1345,Knowledge-Based Support for Adhesive Selection.,False,,0.0,,,,HTTP 429
+train,1382,lp2normal - A Normalization Tool for Extended Logic Programs.,False,,0.0,,,,HTTP 429
+train,1386,Self-Correcting Unsound Reasoning Agents.,False,,0.0,,,,HTTP 429
+train,1389,plasp 3: Towards Effective ASP Planning.,True,"We describe the new version of the PDDL-to-ASP translator plasp. First, it widens the range of accepted PDDL features. Second, it contains novel planning encodings, some inspired by SAT planning and others exploiting ASP features such as well-foundedness. All of them are designed for handling multivalued fluents in order to capture both PDDL as well as SAS planning formats. Third, enabled by multishot ASP solving, it offers advanced planning algorithms also borrowed from SAT planning. As a result, plasp provides us with an ASP-based framework for studying a variety of planning techniques in a uniform setting. Finally, we demonstrate in an empirical analysis that these techniques have a significant impact on the performance of ASP planning.",1.0,http://arxiv.org/abs/1812.04491v1,plasp 3: Towards Effective ASP Planning,2018.0,
+train,1421,"Proceedings of the 10th Workshop on Answer Set Programming and Other Computing Paradigms co-located with the 14th International Conference on Logic Programming and Nonmonotonic Reasoning, ASPOCP@LPNMR 2017, Espoo, Finland, July 3, 2017.",False,,0.0,,,,
+train,1463,sfHornStr: Invariant Synthesis for Regular Model Checking as Constrained Horn Clauses.,False,,0.0,,,,
+train,1593,Reconstruction of SMT Proofs with Lambdapi.,False,,0.0,,,,
+train,1600,Invited Talk: The Hows and Whys of Higher-Order SMT.,False,,0.0,,,,
+train,1685,SolCMC: Solidity Compiler&apos;s Model Checker.,False,,0.0,,,,
+train,1694,Formal Specification for Learning-Enabled Autonomous Systems.,False,,0.0,,,,
+train,1715,Neural Network Precision Tuning Using Stochastic Arithmetic.,False,,0.0,,,,
+train,1746,Differentiable Logics for Neural Network Training and Verification.,True,"The rising popularity of neural networks (NNs) in recent years and their increasing prevalence in real-world applications have drawn attention to the importance of their verification. While verification is known to be computationally difficult theoretically, many techniques have been proposed for solving it in practice. It has been observed in the literature that by default neural networks rarely satisfy logical constraints that we want to verify. A good course of action is to train the given NN to satisfy said constraint prior to verifying them. This idea is sometimes referred to as continuous verification, referring to the loop between training and verification. Usually training with constraints is implemented by specifying a translation for a given formal logic language into loss functions. These loss functions are then used to train neural networks. Because for training purposes these functions need to be differentiable, these translations are called differentiable logics (DL). This raises several research questions. What kind of differentiable logics are possible? What difference does a specific choice of DL make in the context of continuous verification? What are the desirable criteria for a DL viewed from the point of view of the resulting loss function? In this extended abstract we will discuss and answer these questions.",1.0,http://arxiv.org/abs/2207.06741v1,Differentiable Logics for Neural Network Training and Verification,2022.0,
+train,1755,"4th International Workshop on Formal Methods for Blockchains, FMBC@CAV 2022, Haifa, Israel, August 11, 2022",False,,0.0,,,,
+train,1849,"3rd International Workshop on Formal Methods for Blockchains, FMBC@CAV 2021, Los Angeles, California, USA (Virtual Conference), July 18-19, 2021",False,,0.0,,,,
+train,2138,"Computer Aided Verification - 30th International Conference, CAV 2018, Held as Part of the Federated Logic Conference, FloC 2018, Oxford, UK, July 14-17, 2018, Proceedings, Part I",False,,0.0,,,,
+train,2142,Repairing Decision-Making Programs Under Uncertainty.,False,,0.0,,,,
+train,2157,Formal Correctness of Comparison Algorithms Between Binary64 and Decimal64 Floating-Point Numbers.,False,,0.0,,,,
+train,2219,"Numerical Software Verification - 10th International Workshop, NSV 2017, Heidelberg, Germany, July 22-23, 2017, Proceedings [collocated with CAV 2017]",False,,0.0,,,,
+train,2220,"Proceedings Sixth Workshop on Synthesis, SYNT@CAV 2017, Heidelberg, Germany, 22nd July 2017.",False,,0.0,,,,
+train,2574,"LICS &apos;22: 37th Annual ACM/IEEE Symposium on Logic in Computer Science, Haifa, Israel, August 2 - 5, 2022",False,,0.0,,,,
+train,2671,On the computational content of Zorn&apos;s lemma.,False,,0.0,,,,
+train,2744,"LICS &apos;20: 35th Annual ACM/IEEE Symposium on Logic in Computer Science, Saarbrücken, Germany, July 8-11, 2020.",False,,0.0,,,,
+train,2872,Type-two polynomial-time and restricted lookahead.,True,"This paper provides an alternate characterization of type-two polynomial-time computability, with the goal of making second-order complexity theory more approachable. We rely on the usual oracle machines to model programs with subroutine calls. In contrast to previous results, the use of higher-order objects as running times is avoided, either explicitly or implicitly. Instead, regular polynomials are used. This is achieved by refining the notion of oracle-polynomial-time introduced by Cook. We impose a further restriction on the oracle interactions to force feasibility. Both the restriction as well as its purpose are very simple: it is well-known that Cook's model allows polynomial depth iteration of functional inputs with no restrictions on size, and thus does not guarantee that polynomial-time computability is preserved. To mend this we restrict the number of lookahead revisions, that is the number of times a query can be asked that is bigger than any of the previous queries. We prove that this leads to a class of feasible functionals and that all feasible problems can be solved within this class if one is allowed to separate a task into efficiently solvable subtasks. Formally put: the closure of our class under lambda-abstraction and application includes all feasible operations. We also revisit the very similar class of strongly polynomial-time computable operators previously introduced by Kawamura and Steinberg. We prove it to be strictly included in our class and, somewhat surprisingly, to have the same closure property. This can be attributed to properties of the limited recursion operator: It is not strongly polynomial-time computable but decomposes into two such operations and lies in our class.",1.0,http://arxiv.org/abs/1801.07485v2,Type-two polynomial-time and restricted lookahead,2018.0,
+train,2908,"Proceedings of the 33rd Annual ACM/IEEE Symposium on Logic in Computer Science, LICS 2018, Oxford, UK, July 09-12, 2018",False,,0.0,,,,
+train,2934,On shift-invariant maximal filters and hormonal cellular automata.,False,,0.0,,,,
+train,2935,Verification of randomized security protocols.,False,,0.0,,,,
+train,2981,Riesz Modal logic for Markov processes.,False,,0.0,,,,
+train,2998,Infinitary intersection types as sequences: A new answer to Klop&apos;s problem.,False,,0.0,,,,
+train,3003,"32nd Annual ACM/IEEE Symposium on Logic in Computer Science, LICS 2017, Reykjavik, Iceland, June 20-23, 2017",False,,0.0,,,,
+train,3010,Stochastic mechanics of graph rewriting.,False,,0.0,,,,HTTP 429
+train,3033,From positive and intuitionistic bounded arithmetic to monotone proof complexity.,False,,0.0,,,,HTTP 429
+train,3036,Decidability and Complexity for Quiescent Consistency.,False,,0.0,,,,HTTP 429
+train,3043,Semantically Acyclic Conjunctive Queries under Functional Dependencies.,False,,0.0,,,,"ReadTimeout(ReadTimeoutError(""HTTPSConnectionPool(host='export.arxiv.org', port=443): Read timed out. (read timeout=30)""))"
+train,3048,Effective Brenier Theorem: Applications to Computable Analysis and Algorithmic Randomness.,False,,0.0,,,,HTTP 429
+train,3049,Duality in Computer Science.,False,,0.0,,,,HTTP 429
+train,3054,Conflict nets: Efficient locally canonical MALL proof nets.,False,,0.0,,,,HTTP 429
+train,3086,Factor Varieties and Symbolic Computation.,False,,0.0,,,,HTTP 429
+train,3093,"Proceedings of the 31st Annual ACM/IEEE Symposium on Logic in Computer Science, LICS &apos;16, New York, NY, USA, July 5-8, 2016",False,,0.0,,,,HTTP 429
+public_test,796,Who&apos;s the Expert? On Multi-source Belief Change.,False,,0.0,,,,HTTP 429
+public_test,1296,ASP-Based Large Neighborhood Prioritized Search for Course Timetabling.,False,,0.0,,,,HTTP 429
+public_test,1310,Analysis of Cyclic Fault Propagation via ASP.,False,,0.0,,,,HTTP 429
+public_test,1305,Statistical Statements in Probabilistic Logic Programming.,False,,0.0,,,,HTTP 429
+public_test,2275,Investigating Safety of a Radiotherapy Machine Using System Models with Pluggable Checkers.,False,,0.0,,,,HTTP 429
+public_test,1648,NNV 2.0: The Neural Network Verification Tool.,False,,0.0,,,,HTTP 429
+public_test,1602,"Computer Aided Verification - 36th International Conference, CAV 2024, Montreal, QC, Canada, July 24-27, 2024, Proceedings, Part II",False,,0.0,,,,HTTP 429
+public_test,1302,Modal Logic S5 in Answer Set Programming with Lazy Creation of Worlds.,False,,0.0,,,,HTTP 429
+public_test,1321,A Qualitative Temporal Extension of Here-and-There Logic.,False,,0.0,,,,HTTP 429
+public_test,1011,Modelling ICU Patients to Improve Care Requirements and Outcome Prediction of Acute Respiratory Distress Syndrome: A Supervised Learning Approach.,False,,0.0,,,,HTTP 429
+public_test,1508,"Computer Aided Verification - 37th International Conference, CAV 2025, Zagreb, Croatia, July 23-25, 2025, Proceedings, Part III",False,,0.0,,,,HTTP 429
+public_test,1032,Introduction.,False,,0.0,,,,HTTP 429
+public_test,1299,"Policies, Penalties, and Autonomous Agents.",False,,0.0,,,,HTTP 429
+public_test,1172,Post-quantum security: Power Analysis of NTRUEncrypt.,False,,0.0,,,,HTTP 429
+public_test,1042,When Memory Serves Not So Well - Memory Errors 30 Years Later.,False,,0.0,,,,HTTP 429
+public_test,1579,Probabilistic Access Policies with Automated Reasoning Support.,False,,0.0,,,,HTTP 429
+public_test,1313,Metric Temporal Answer Set Programming over Timed Traces.,False,,0.0,,,,HTTP 429
+public_test,1180,"Principles of Knowledge Representation and Reasoning: Proceedings of the Sixteenth International Conference, KR 2018, Tempe, Arizona, 30 October - 2 November 2018.",False,,0.0,,,,"ReadTimeout(ReadTimeoutError(""HTTPSConnectionPool(host='export.arxiv.org', port=443): Read timed out. (read timeout=30)""))"
+public_test,1737,CEG4N: Counter-Example Guided Neural Network Quantization Refinement.,False,,0.0,,,,HTTP 429
+public_test,896,"Proceedings of the Second Workshop on Second-Order Quantifier Elimination and Related Topics (SOQE 2021) associated with the 18th International Conference on Principles of Knowledge Representation and Reasoning (KR 2021), Online Event, November 4, 2021.",False,,0.0,,,,HTTP 429
+public_test,1298,A Simulation for Supply Chains Contract Execution.,False,,0.0,,,,HTTP 429
+public_test,1573,Approximate Relational Reasoning for Quantum Programs.,False,,0.0,,,,HTTP 429
+public_test,1441,Structural Operational Semantics for Functional and Security Verification of Pipelined Processors.,False,,0.0,,,,HTTP 429
+public_test,1436,Automated Parameterized Verification of a Railway Protection System with Dafny.,False,,0.0,,,,"ReadTimeout(ReadTimeoutError(""HTTPSConnectionPool(host='export.arxiv.org', port=443): Read timed out. (read timeout=30)""))"
+public_test,1481,A Misconception-Driven Adaptive Tutor for Linear Temporal Logic.,False,,0.0,,,,
+public_test,1704,Proof-Guided Underapproximation Widening for Bounded Model Checking.,False,,0.0,,,,
+public_test,1699,Local Search for SMT on Linear Integer Arithmetic.,False,,0.0,,,,
+public_test,1163,Examining Leakage from Access Counts in ORAM Constructions.,False,,0.0,,,,
+private_test,1330,State Transition in Multi-agent Epistemic Domains Using Answer Set Programming.,False,,0.0,,,,
+private_test,1561,The Top-Down Solver Verified: Building Confidence in Static Analyzers.,False,,0.0,,,,
+private_test,888,Living Without Beth and Craig: Explicit Definitions and Interpolants without Beth Definability and Craig Interpolation (Abstract of Invited Talk).,False,,0.0,,,,
+private_test,2551,Temporal Team Semantics Revisited.,True,"Temporal logics have been studied as an approach to the specification of hyperproperties, resulting in the conception of ""hyperlogics"". With a few recent exceptions, the hyperlogics thus far developed can only relate different traces of a transition system synchronously. However, important information is contained in the relation between different points in their asynchronous interaction. To specify such ""asynchronous hyperproperties"", new trace quantifier based hyperlogics have been developed. Yet, hyperlogics with trace quantification cannot express certain requirements that describe the relationships between all executions of a system. Also, these logics induce model checking problems (MC) with prohibitively high complexity costs in the number of quantifier alternations. We study an alternative approach to asynchronous hyperproperties by introducing a novel foundation of temporal team semantics. Team semantics is a logical framework that specifies properties of sets of traces of unbounded size directly, and thus does not have the same limitation as the quantifier based logics mentioned above. We consider temporal team logics which employ quantification over so-called ""time evaluation functions"" (TEFs) controlling the asynchronous progress of traces instead of quantification over traces. TEFs constitute a novel approach to defining expressive logics for hyperproperties where diverse asynchronous interactions between computations can be formalised and enforced. We show embeddings of synchronous TeamLTL into our new logics. We show that MC for some TeamCTL fragment is highly undecidable. We present a translation from TeamCTL* to Alternating Asynchronous Büchi Automata, and obtain decidability results for the path checking problem and restrictions of MC and SAT. Our translation constitutes the first approach to team semantics based on automata-theoretic methods.",1.0,http://arxiv.org/abs/2110.12699v3,Temporal Team Semantics Revisited,2021.0,
+private_test,744,"Proceedings of the 20th International Conference on Principles of Knowledge Representation and Reasoning, KR 2023, Rhodes, Greece, September 2-8, 2023.",False,,0.0,,,,
+private_test,1509,"Computer Aided Verification - 37th International Conference, CAV 2025, Zagreb, Croatia, July 23-25, 2025, Proceedings, Part IV",False,,0.0,,,,
+private_test,1623,Learning Assumptions for Compositional Verification of Timed Automata.,False,,0.0,,,,
+private_test,3077,A bifibrational reconstruction of Lawvere&apos;s presheaf hyperdoctrine.,False,,0.0,,,,
+private_test,1332,Towards Provenance in Heterogeneous Knowledge Bases.,False,,0.0,,,,
+private_test,1753,"Computer Aided Verification - 34th International Conference, CAV 2022, Haifa, Israel, August 7-10, 2022, Proceedings, Part I",False,,0.0,,,,
+private_test,2066,"Numerical Software Verification - 12th International Workshop, NSV@CAV 2019, New York City, NY, USA, July 13-14, 2019, Proceedings",False,,0.0,,,,
+private_test,1592,Minimal Logic Detection and Exporting SMTLIB Problems with Dolmen.,False,,0.0,,,,
+private_test,1615,Automated Analyses of IOT Event Monitoring Systems.,False,,0.0,,,,
+private_test,1157,Can Verification of Cryptographic Libraries be liberated from the von Neumann Style?,False,,0.0,,,,
+private_test,1632,Formula Normalizations in Verification.,False,,0.0,,,,
+private_test,1510,"Proceedings of the 12th Workshop on Horn Clauses for Verification and Synthesis, HCVS@CAV 2025, Zagreb, Croatia, 22 July 2025.",False,,0.0,,,,
+private_test,1342,Towards Causality-Based Conflict Resolution in Answer Set Programs.,False,,0.0,,,,
+private_test,999,"Proceedings of the 17th International Conference on Principles of Knowledge Representation and Reasoning, KR 2020, Rhodes, Greece, September 12-18, 2020.",False,,0.0,,,,
+private_test,1673,Searching for i-Good Lemmas to Accelerate Safety Model Checking.,False,,0.0,,,,
+private_test,1567,Safe Exploration in Reinforcement Learning by Reachability Analysis over Learned Models.,False,,0.0,,,,
+private_test,1164,Hardware Accelerated Sender Identification for the Controller Area Network.,False,,0.0,,,,
+private_test,1281,An ILASP-Based Approach to Repair Petri Nets.,False,,0.0,,,,
+private_test,1182,"28. Krypto-Tag, Kirchheim bei München, Germany, June 7-8, 2018",False,,0.0,,,,
+private_test,1603,"Computer Aided Verification - 36th International Conference, CAV 2024, Montreal, QC, Canada, July 24-27, 2024, Proceedings, Part III",False,,0.0,,,,
+private_test,743,"Joint Proceedings of the 2nd Workshop on Knowledge Diversity and the 2nd Workshop on Cognitive Aspects of Knowledge Representation co-located with 20th International Conference on Principles of Knowledge Representation and Reasoning (KR2023), Rhodes, Greece, September 3-4, 2023.",False,,0.0,,,,
+private_test,1723,Program Verification with Constrained Horn Clauses (Invited Paper).,False,,0.0,,,,
+private_test,1318,A Practical Account into Counting Dung&apos;s Extensions by Dynamic Programming.,False,,0.0,,,,
+private_test,3035,Unifying Logical and Statistical AI.,False,,0.0,,,,
+private_test,1754,"Computer Aided Verification - 34th International Conference, CAV 2022, Haifa, Israel, August 7-10, 2022, Proceedings, Part II",False,,0.0,,,,
+private_test,1785,Formally Documenting Tenderbake (Short Paper).,False,,0.0,,,,
