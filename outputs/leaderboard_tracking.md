@@ -32,6 +32,7 @@ should not be treated as the final objective.
 | pending | `outputs/submissions/next_ridge_label4_58_submission.csv` | Ridge 5x5 alpha=8 threshold variant with 58 label-4 predictions | 0.596143 | More aggressive label-4 expansion; lower OOF, submit only if more tests are allowed. |
 | **0.69972** | `outputs/specter2_finetune/specter2_finetune_submission.csv` | **Fine-tuned SPECTER2 base + regression head, 5 folds x 3 seeds, threshold tuning** | **0.638866** | **NEW BEST — +0.069 jump over previous best. Semantic encoder of `title + abstract` with fine-tuning unlocks the topic-relevance axis.** |
 | 0.68737 | `outputs/specter2_finetune_5seed/specter2_finetune_submission.csv` | Same notebook, **5 seeds** instead of 3 (`[252,253,254,255,256]`), 25 models | 0.644537 | OOF higher than 0.69972 but public **lower by 0.012**. Threshold drift inflated predicted label 2 to 36% vs train 21%. See `outputs/lessons_learned.md` (L1). |
+| 0.68718 | `outputs/0.68718/specter2_finetune_v2_submission.csv` | Step 3c: v3 abstracts (95.7%) + max_len 384 + constrained tuner (lambda=0.5). 5 folds x 3 seeds | 0.644552 | Same regression pattern as 5-seed: OOF +0.006, public -0.012. Three knobs changed at once. See `outputs/lessons_learned.md` (L6). |
 
 ## Current Takeaways
 

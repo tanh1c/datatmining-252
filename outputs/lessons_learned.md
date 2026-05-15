@@ -3,6 +3,45 @@
 Living document. Each entry records a concrete observation we paid for in
 submissions and the rule of thumb to avoid repeating the mistake.
 
+## L6 — Changing multiple knobs at once = un-attributable regression
+
+**Evidence (2026-05-15):** `0.68718` (3c run). Three changes were applied at the same time vs the 0.69972 baseline:
+
+1. v2 abstract cache (93.7%) -> v3 cache (95.7%, +44 abstracts).
+2. `MAX_LEN` 256 -> 384.
+3. Unconstrained threshold tuner -> constrained (lambda=0.5 * L1 distance).
+
+OOF QWK rose to 0.6446 (+0.006). OOF L1 distance to train dist was excellent (0.0225). Yet public LB dropped 0.69972 -> 0.68718 (-0.01254).
+
+42 test rows changed: 29 down, 13 up. Public split absorbed 29 changes; private only 13. Net direction: the model became more conservative.
+
+**Root cause.** Each knob individually looked safe, but they interacted. The constrained tuner protected OOF distribution; v3 cache + max_len 384 changed the *test* score distribution; and we cannot tell which of the three was the actual culprit because we changed them together.
+
+**Rule of thumb.**
+- Change one knob at a time. After each change, submit and confirm public direction *before* the next change.
+- The constrained tuner is the one knob that has independent OOF evidence (L1 from 0.1275 -> 0.0225) — keep it.
+- For abstract cache + max_len, run separate ablations next time. Hypothesis: max_len 256 with v3 cache is probably better than max_len 384 with v3 cache, because most label-bearing signal is in the first 200 tokens of the abstract anyway.
+
+**Action items.**
+- [ ] Next experiment: change *only* the abstract cache (v2 -> v3), keep everything else identical to 0.69972. If OOF improves and public improves -> v3 is good. Otherwise revert.
+- [ ] Separately: keep v2 cache + change *only* max_len 256 -> 384. Compare.
+- [ ] Do NOT submit a multi-change run unless each underlying change has been individually validated.
+
+---
+
+## L1 (updated) — Constrained tuner is necessary but not sufficient
+
+The constrained tuner *did* fix OOF distribution (L1 dist 0.0225 in 0.68718 vs 0.139 in unconstrained 5-seed). But it did **not** prevent public regression, because the encoder change shifted the test score distribution upstream of threshold tuning.
+
+So L1's rule "predicted distribution should stay close to train" applies to **test** distribution, not OOF. Achieving low OOF L1 is necessary but not sufficient. Future Action: also verify *test* combined distribution L1 < ~0.12 before submitting.
+
+---
+
+## L1 — OOF QWK can rise while public LB falls (threshold-distribution drift)
+
+
+---
+
 ## L1 — OOF QWK can rise while public LB falls (threshold-distribution drift)
 
 **Evidence (latest, 2026-05-13):** `0.69972` (3-seed SPECTER2 fine-tune) vs
