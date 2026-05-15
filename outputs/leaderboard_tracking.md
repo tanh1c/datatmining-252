@@ -33,6 +33,7 @@ should not be treated as the final objective.
 | **0.69972** | `outputs/specter2_finetune/specter2_finetune_submission.csv` | **Fine-tuned SPECTER2 base + regression head, 5 folds x 3 seeds, threshold tuning** | **0.638866** | **NEW BEST — +0.069 jump over previous best. Semantic encoder of `title + abstract` with fine-tuning unlocks the topic-relevance axis.** |
 | 0.68737 | `outputs/specter2_finetune_5seed/specter2_finetune_submission.csv` | Same notebook, **5 seeds** instead of 3 (`[252,253,254,255,256]`), 25 models | 0.644537 | OOF higher than 0.69972 but public **lower by 0.012**. Threshold drift inflated predicted label 2 to 36% vs train 21%. See `outputs/lessons_learned.md` (L1). |
 | 0.68718 | `outputs/0.68718/specter2_finetune_v2_submission.csv` | Step 3c: v3 abstracts (95.7%) + max_len 384 + constrained tuner (lambda=0.5). 5 folds x 3 seeds | 0.644552 | Same regression pattern as 5-seed: OOF +0.006, public -0.012. Three knobs changed at once. See `outputs/lessons_learned.md` (L6). |
+| **0.71052** | `outputs/0.71052/blend_2anchor_70_specter_submission.csv` | **Stacking step 5 — `0.7 * specter_3s_oof + 0.3 * ridge_5x5_oof`, distribution-constrained thresholds** | **0.646351** | **NEW BEST — first submission to break 0.70. +0.011 over 0.69972. 2-anchor minimalist blend (1 semantic + 1 lexical) beat 4-anchor stacks. Lower OOF than huber_meta (0.6534) but lowest test L1 distance (0.152) among 12 candidates. See L7 in lessons_learned.md.** |
 
 ## Current Takeaways
 
@@ -481,3 +482,34 @@ This is the **second** time we hit this pattern (the first was 5x5 Ridge
    penalises `|pred_share_k - train_share_k|`.
 3. When a future submission gives higher OOF but a shifted distribution, do
    not promote it; retune thresholds with the constraint first.
+
+
+## After 0.71052 — First submission past 0.70 (stacking blend)
+
+A 2-anchor blend `0.7 * specter_3s_oof + 0.3 * ridge_5x5_oof` with
+distribution-constrained threshold tuner pushed public LB from `0.69972` to
+**`0.71052`**, a `+0.0108` jump. Full recipe in `outputs/0.71052/manifest.md`.
+
+Twelve stack candidates were tried. The candidate with the **highest OOF
+QWK** (`huber_meta`, 0.6534) was *not* the one that won — it dropped the
+specter_3s anchor (the public-best base) because the 3 SPECTER2 anchors are
+~0.98 correlated and meta-models tend to drop one of them. Instead, the
+candidate with the **lowest test combined L1 distance** (0.152) won — it had
+OOF 0.6464 (lower than huber_meta) but its predicted label distribution was
+closest to the train distribution.
+
+This is L7 in `outputs/lessons_learned.md`: when stacking, rank candidates by
+test L1 distance first and OOF QWK second.
+
+### Where to go next
+
+| Candidate | Why | Expected gain |
+| --- | --- | --- |
+| Fine-tune **SciBERT** as a 4th truly diverse anchor | SciBERT vs SPECTER2 should correlate <0.85, unlike specter_5s/v2 which were ~0.98 vs specter_3s | +0.005 - 0.012 |
+| Re-run OpenAlex script to extract continuous OOF and add as 5th anchor | citation-based signal is uncorrelated with text | +0.002 - 0.008 |
+| LLM zero/few-shot ASP-relevance score | another orthogonal signal direction | +0.005 - 0.015 |
+| Sweep blend weight 0.65/0.35, 0.75/0.25 | cheap hyperparameter explore | +0.000 - 0.005 |
+
+The stacking ceiling is bounded by the **diversity** of base anchors. We
+already have 2 effective signals (semantic + lexical). To push further we
+need a genuinely third signal, not another SPECTER2 variant.

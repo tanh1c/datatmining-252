@@ -3,7 +3,34 @@
 Living document. Each entry records a concrete observation we paid for in
 submissions and the rule of thumb to avoid repeating the mistake.
 
-## L6 — Changing multiple knobs at once = un-attributable regression
+## L7 — Stack by *test L1 distance*, not OOF QWK; minimalist 2-anchor beats 4-anchor
+
+**Evidence (2026-05-15):** the stacking step (`outputs/stacking/`) tried 12 candidates over 4 anchors (ridge_5x5 + 3 SPECTER2 finetunes). Two key findings:
+
+1. The 3 SPECTER2 anchors had pairwise Pearson correlation 0.98+. They are essentially the same signal. Only ridge_5x5 (correlation 0.81 vs SPECTER2) is a genuinely different second signal.
+
+2. Meta-models that select weights by OOF (huber, ridge, constrained blend) consistently picked `specter_5s` and `specter_v2` over `specter_3s` because they had ~0.005 higher OOF QWK. These same meta-models gave `specter_3s` weight 0 or negative. Yet `specter_3s` was the public-best anchor (0.69972 vs 0.687). They optimised for OOF and dropped the public-validated signal.
+
+3. **Test combined L1 distance** (predicted label distribution vs train distribution) is a much better proxy for public LB than OOF QWK on this dataset:
+   - Top-OOF candidate `huber_meta` had OOF 0.6534 but test L1 = 0.179. Likely public regression.
+   - Selected candidate `blend_2anchor_70_specter` had OOF 0.6464 (lower) but test L1 = 0.152 (lowest). **Public LB 0.71052** (+0.011 over previous best).
+
+**Root cause.** When base anchors are highly correlated, OOF rewards picking the slightly-better-OOF version, but those marginally different versions transfer marginally differently to test. The variance dominates the OOF gain.
+
+**Rule of thumb.**
+- For each pair of anchors, compute Pearson correlation on OOF. Treat anchors with r > 0.9 as the same signal.
+- A minimalist 2-anchor stack of *truly different* signals (correlation 0.6-0.85) is usually safer and stronger than a 4+ anchor stack with redundant base models.
+- When picking the candidate to submit, **rank by test combined L1 distance first**, OOF QWK second. Both must be acceptable: OOF QWK >= base anchor, test L1 close to or below the anchor's test L1.
+- Bias the blend weight toward the public-validated anchor (e.g. 0.70 weight for the anchor with the strongest public LB), not toward the highest-OOF anchor.
+
+**Action items.**
+- [ ] Future stacks should add a *truly diverse* anchor (SciBERT fine-tune, LLM scoring) rather than 5-seed / 7-seed re-runs of SPECTER2.
+- [ ] Add a column "Pearson r vs strongest anchor" to any anchor candidate before adding to a stack.
+- [ ] Always include `anchor_specter_3s_only` (or whatever the current public-best is) as a sanity-baseline candidate inside the stacking script.
+
+---
+
+
 
 **Evidence (2026-05-15):** `0.68718` (3c run). Three changes were applied at the same time vs the 0.69972 baseline:
 
@@ -34,11 +61,6 @@ OOF QWK rose to 0.6446 (+0.006). OOF L1 distance to train dist was excellent (0.
 The constrained tuner *did* fix OOF distribution (L1 dist 0.0225 in 0.68718 vs 0.139 in unconstrained 5-seed). But it did **not** prevent public regression, because the encoder change shifted the test score distribution upstream of threshold tuning.
 
 So L1's rule "predicted distribution should stay close to train" applies to **test** distribution, not OOF. Achieving low OOF L1 is necessary but not sufficient. Future Action: also verify *test* combined distribution L1 < ~0.12 before submitting.
-
----
-
-## L1 — OOF QWK can rise while public LB falls (threshold-distribution drift)
-
 
 ---
 
@@ -147,6 +169,31 @@ stop. Beyond a point, extra folds/seeds shift the score distribution, threshold
 tuning re-optimises against the new distribution, and the predicted labels
 drift. The 5x3 SPECTER2 fine-tune (15 models) is a sweet spot; 5x5 (25 models)
 already drifts.
+
+## L6 — Changing multiple knobs at once = un-attributable regression
+
+**Evidence (2026-05-15):** `0.68718` (3c run). Three changes were applied at the same time vs the 0.69972 baseline:
+
+1. v2 abstract cache (93.7%) -> v3 cache (95.7%, +44 abstracts).
+2. `MAX_LEN` 256 -> 384.
+3. Unconstrained threshold tuner -> constrained (lambda=0.5 * L1 distance).
+
+OOF QWK rose to 0.6446 (+0.006). OOF L1 distance to train dist was excellent (0.0225). Yet public LB dropped 0.69972 -> 0.68718 (-0.01254).
+
+42 test rows changed: 29 down, 13 up. Public split absorbed 29 changes; private only 13. Net direction: the model became more conservative.
+
+**Root cause.** Each knob individually looked safe, but they interacted. The constrained tuner protected OOF distribution; v3 cache + max_len 384 changed the *test* score distribution; and we cannot tell which of the three was the actual culprit because we changed them together.
+
+**Rule of thumb.**
+- Change one knob at a time. After each change, submit and confirm public direction *before* the next change.
+- The constrained tuner is the one knob that has independent OOF evidence (L1 from 0.1275 -> 0.0225) — keep it.
+- For abstract cache + max_len, run separate ablations next time.
+
+**Action items.**
+- [ ] Future experiments must isolate one variable at a time.
+- [ ] Do NOT submit a multi-change run unless each underlying change has been individually validated.
+
+---
 
 ---
 
