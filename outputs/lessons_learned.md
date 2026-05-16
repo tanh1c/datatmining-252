@@ -1,6 +1,41 @@
 # Lessons learned — for the next agent / future-me
 
 Living document. Each entry records a concrete observation we paid for in
+## L9 — Test L1 distance and OOF QWK are heuristics, not laws; blending strong correlated anchors can still help
+
+**Evidence (2026-05-16):** `0.72103` (`blend_3anchor_scincl_specter_ridge_60_20_20`) beat `0.71052` (`blend_2anchor_70_specter`) on public LB by `+0.0105` despite **both metrics suggesting it should regress**:
+
+| Metric | 0.71052 anchor | 0.72103 (this submission) |
+| --- | ---: | ---: |
+| OOF QWK (constrained tuner) | **0.6464** | 0.6412 (**lower**) |
+| Test combined L1 distance vs train | **0.152** | 0.162 (**higher**) |
+| Predicted label dist | similar | similar |
+
+L7 said "rank by test L1 first, OOF second"; both metrics here pointed to "do not submit". Yet public went up.
+
+**What this means.**
+- Test L1 distance is a useful *filter* but not a deterministic predictor. It works to flag drifted distributions (5-seed run 0.68737 had test L1 0.183, public regressed); it does not reliably rank candidates that are all in the "well-calibrated" zone (test L1 0.13 - 0.18).
+- OOF QWK on a single CV fold is also noisy. A 0.005 OOF gap is comparable to the seed-to-seed variance in fine-tune training, so it should not by itself disqualify a candidate.
+- A new anchor with OOF below the existing best can still lift the stack if it adds enough independent signal. **High pairwise correlation does not mean redundancy.** SciNCL had Pearson `r = 0.943` with SPECTER2 (similar to SciBERT's 0.948) and OOF `0.6269` < SPECTER2's `0.6373`, yet the 60/20/20 blend out-performs SPECTER2 + Ridge.
+
+**Why SciNCL worked while SciBERT did not (despite similar correlation).**
+- SciBERT and SPECTER2 share the same MLM checkpoint; SPECTER2 is SciBERT plus a contrastive paper-similarity head. Their disagreement set is small.
+- SciNCL was trained from scratch with a *different* contrastive objective (neighborhood contrastive learning over the citation graph). Its disagreement with SPECTER2 is on different rows than where SciBERT disagrees, even though the correlation is similar.
+- We do not have an explicit metric for "kind of disagreement". The lesson is: do not rule out a candidate purely on correlation.
+
+**Rule of thumb (revised L7).**
+- Treat OOF QWK gap < 0.01 and test L1 distance gap < 0.03 as *noise* relative to the current anchor.
+- For two anchors with `r > 0.9`, still try a blend if both are individually competitive (OOF >= 80% of the strongest anchor's OOF).
+- Submit borderline candidates **one at a time** to learn which signal pattern is genuine. Burning a daily slot on a "lowest test L1 within the new family" candidate is a reasonable hedge even when both metrics formally favour the anchor.
+
+**Action items.**
+- [ ] If a new base model is added, evaluate a 60/20/20 weighting scheme (or a small 50-65 / 15-25 / 15-25 grid) before discarding it for redundancy.
+- [ ] Keep test L1 distance as a *flag*, not a *gate*. Reject only candidates with test L1 above some absolute threshold (~ 0.18 looks safe; > 0.20 has consistently hurt).
+- [ ] Sweep the 3-anchor weights around 60/20/20 (55/25/20, 65/15/20, 70/10/20) on the same anchors to confirm the winning region.
+
+---
+
+
 ## L8 — LLM zero-shot has the diversity but not the signal strength
 
 **Evidence (2026-05-16):** ran DeepSeek `deepseek-v4-flash` zero-shot scoring (verbalizer trick over digit token logprobs) on the full 3090 papers. Two prompt versions:

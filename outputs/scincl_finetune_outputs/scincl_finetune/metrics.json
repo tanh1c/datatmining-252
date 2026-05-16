@@ -1,0 +1,137 @@
+{
+  "method": "scincl_finetune",
+  "model": "malteos/scincl",
+  "folds": 5,
+  "seeds": [
+    252,
+    253,
+    254
+  ],
+  "epochs": 5,
+  "max_len": 256,
+  "batch_train": 16,
+  "lr_encoder": 2e-05,
+  "lr_head": 0.001,
+  "oof_qwk": 0.6268965682752954,
+  "oof_mae": 0.8191659983961508,
+  "oof_macro_f1": 0.39151434747995373,
+  "thresholds": [
+    1.8851198335078856,
+    2.489549509802204,
+    3.2184449779793187,
+    4.043491253310047
+  ],
+  "label_distribution_combined": {
+    "1": 263,
+    "2": 124,
+    "3": 98,
+    "4": 70,
+    "5": 41
+  },
+  "label_distribution_public": {
+    "1": 122,
+    "2": 64,
+    "3": 57,
+    "4": 33,
+    "5": 22
+  },
+  "label_distribution_private": {
+    "1": 141,
+    "2": 60,
+    "3": 41,
+    "4": 37,
+    "5": 19
+  },
+  "fold_log": [
+    {
+      "seed": 252,
+      "fold": 1,
+      "best_round_qwk": 0.6124226523043367,
+      "minutes": 0.78
+    },
+    {
+      "seed": 252,
+      "fold": 2,
+      "best_round_qwk": 0.5891806698841306,
+      "minutes": 0.59
+    },
+    {
+      "seed": 252,
+      "fold": 3,
+      "best_round_qwk": 0.5798594594461715,
+      "minutes": 0.59
+    },
+    {
+      "seed": 252,
+      "fold": 4,
+      "best_round_qwk": 0.581666422251552,
+      "minutes": 0.58
+    },
+    {
+      "seed": 252,
+      "fold": 5,
+      "best_round_qwk": 0.6174661746617467,
+      "minutes": 0.58
+    },
+    {
+      "seed": 253,
+      "fold": 1,
+      "best_round_qwk": 0.624189049185258,
+      "minutes": 0.58
+    },
+    {
+      "seed": 253,
+      "fold": 2,
+      "best_round_qwk": 0.5778018056705827,
+      "minutes": 0.59
+    },
+    {
+      "seed": 253,
+      "fold": 3,
+      "best_round_qwk": 0.6078764170603972,
+      "minutes": 0.59
+    },
+    {
+      "seed": 253,
+      "fold": 4,
+      "best_round_qwk": 0.6216575767795054,
+      "minutes": 0.59
+    },
+    {
+      "seed": 253,
+      "fold": 5,
+      "best_round_qwk": 0.6159124474571136,
+      "minutes": 0.58
+    },
+    {
+      "seed": 254,
+      "fold": 1,
+      "best_round_qwk": 0.6154179865199256,
+      "minutes": 0.58
+    },
+    {
+      "seed": 254,
+      "fold": 2,
+      "best_round_qwk": 0.6045258553017467,
+      "minutes": 0.58
+    },
+    {
+      "seed": 254,
+      "fold": 3,
+      "best_round_qwk": 0.5870292822812861,
+      "minutes": 0.58
+    },
+    {
+      "seed": 254,
+      "fold": 4,
+      "best_round_qwk": 0.6066267232707188,
+      "minutes": 0.59
+    },
+    {
+      "seed": 254,
+      "fold": 5,
+      "best_round_qwk": 0.5940115358516173,
+      "minutes": 0.58
+    }
+  ]
+}

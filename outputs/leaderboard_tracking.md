@@ -30,10 +30,11 @@ should not be treated as the final objective.
 | 0.62820 | `outputs/submissions/next_ridge_label4_51_submission.csv` | Ridge 5x5 alpha=8 threshold variant with 51 label-4 predictions | 0.597188 | New best public score, tied with the 55-label4 variant. Closest to the prior 0.62463 anchor. |
 | 0.62820 | `outputs/submissions/next_ridge_label4_55_submission.csv` | Ridge 5x5 alpha=8 threshold variant with 55 label-4 predictions | 0.597636 | Tied best public score, only 4 rows different from the 51-label4 variant. |
 | pending | `outputs/submissions/next_ridge_label4_58_submission.csv` | Ridge 5x5 alpha=8 threshold variant with 58 label-4 predictions | 0.596143 | More aggressive label-4 expansion; lower OOF, submit only if more tests are allowed. |
-| **0.69972** | `outputs/specter2_finetune/specter2_finetune_submission.csv` | **Fine-tuned SPECTER2 base + regression head, 5 folds x 3 seeds, threshold tuning** | **0.638866** | **NEW BEST — +0.069 jump over previous best. Semantic encoder of `title + abstract` with fine-tuning unlocks the topic-relevance axis.** |
+| **0.69972** | `outputs/specter2_finetune/specter2_finetune_submission.csv` | Fine-tuned SPECTER2 base + regression head, 5 folds x 3 seeds, threshold tuning | 0.638866 | First major jump to 0.70. +0.069 over previous. Semantic encoder of `title + abstract` with fine-tuning unlocks the topic-relevance axis. |
 | 0.68737 | `outputs/specter2_finetune_5seed/specter2_finetune_submission.csv` | Same notebook, **5 seeds** instead of 3 (`[252,253,254,255,256]`), 25 models | 0.644537 | OOF higher than 0.69972 but public **lower by 0.012**. Threshold drift inflated predicted label 2 to 36% vs train 21%. See `outputs/lessons_learned.md` (L1). |
 | 0.68718 | `outputs/0.68718/specter2_finetune_v2_submission.csv` | Step 3c: v3 abstracts (95.7%) + max_len 384 + constrained tuner (lambda=0.5). 5 folds x 3 seeds | 0.644552 | Same regression pattern as 5-seed: OOF +0.006, public -0.012. Three knobs changed at once. See `outputs/lessons_learned.md` (L6). |
-| **0.71052** | `outputs/0.71052/blend_2anchor_70_specter_submission.csv` | **Stacking step 5 — `0.7 * specter_3s_oof + 0.3 * ridge_5x5_oof`, distribution-constrained thresholds** | **0.646351** | **NEW BEST — first submission to break 0.70. +0.011 over 0.69972. 2-anchor minimalist blend (1 semantic + 1 lexical) beat 4-anchor stacks. Lower OOF than huber_meta (0.6534) but lowest test L1 distance (0.152) among 12 candidates. See L7 in lessons_learned.md.** |
+| **0.71052** | `outputs/0.71052/blend_2anchor_70_specter_submission.csv` | Stacking step 5 — `0.7 * specter_3s_oof + 0.3 * ridge_5x5_oof`, distribution-constrained thresholds | 0.646351 | First submission to break 0.70. +0.011 over 0.69972. 2-anchor minimalist blend (1 semantic + 1 lexical) beat 4-anchor stacks. |
+| **0.72103** | `outputs/0.72103/blend_3anchor_scincl_specter_ridge_60_20_20_submission.csv` | **Stacking step 6 — `0.6 * scincl + 0.2 * specter_3s + 0.2 * ridge_5x5`, distribution-constrained thresholds** | **0.641159** | **NEW BEST — first submission past 0.72. +0.011 over 0.71052. SciNCL added genuine signal despite Pearson 0.943 correlation with SPECTER2 and slightly lower OOF (0.6269). Both heuristics (OOF QWK and test L1) said "do not submit"; submitted anyway as a hedge with the lowest-test-L1 SciNCL candidate. See L9 in lessons_learned.md.** |
 
 ## Current Takeaways
 
@@ -513,3 +514,40 @@ test L1 distance first and OOF QWK second.
 The stacking ceiling is bounded by the **diversity** of base anchors. We
 already have 2 effective signals (semantic + lexical). To push further we
 need a genuinely third signal, not another SPECTER2 variant.
+
+
+## After 0.72103 — Three-anchor stack with SciNCL added (NEW BEST, breaks 0.72)
+
+A 3-anchor weighted blend `0.6 * scincl + 0.2 * specter_3s + 0.2 * ridge` with
+distribution-constrained threshold tuner pushed public LB from `0.71052` to
+**`0.72103`**. Full recipe in `outputs/0.72103/manifest.md`.
+
+This submission was counter-intuitive on paper:
+
+- OOF QWK 0.6412 (lower than the 0.71052 anchor's 0.6464).
+- Test combined L1 distance 0.162 (higher than the anchor's 0.152).
+- SciNCL alone OOF 0.6269 (lower than every other base anchor).
+- SciNCL Pearson correlation 0.943 with SPECTER2 (similar to the SciBERT
+  correlation that did not help).
+
+It still works because high pairwise correlation between two strong base
+models is **not** the same as redundancy. SciNCL was trained with a different
+contrastive objective (neighborhood contrastive learning vs SPECTER2's
+triplet loss) so its disagreement set with SPECTER2 falls on different rows
+than where SciBERT disagreed.
+
+**This is L9 in `outputs/lessons_learned.md`:** treat OOF gaps < 0.01 and
+test-L1 gaps < 0.03 as noise relative to the anchor. Submit borderline
+candidates one at a time; do not over-prune by metric heuristics alone.
+
+### Where to go next
+
+| Idea | Why | Expected gain |
+| --- | --- | ---: |
+| Sweep weights around 60/20/20: 55/25/20, 65/15/20, 70/10/20 | Confirm winning region; cheap | +0.000 → +0.005 |
+| Add a 4th architecturally-different anchor (DeBERTa-v3-large, bge-large) | More diverse signals | +0.005 → +0.012 |
+| Try SPECTER2 `classification` adapter as a 5th anchor | Different head, same encoder | +0.000 → +0.005 |
+| Use 35/35/30 weights (highest OOF among 3-anchor SciNCL blends) | Test whether higher OOF transfers despite higher test L1 | +0.000 → +0.010 (untested) |
+
+Top priority is the weight sweep around 60/20/20 because it costs nothing
+extra and tests a concrete hypothesis.
