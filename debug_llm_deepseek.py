@@ -74,18 +74,16 @@ def probe(api_key: str, model: str) -> str:
         "Formally Explaining Decision Tree Models with Answer Set Programming.",
         "We propose a formal framework for explaining decision tree predictions using Answer Set Programming.",
     )
+    extra_body = {"thinking": {"type": "disabled"}} if model.startswith("deepseek-v4") else None
 
     print("[probe] trying with logprobs=True ...")
     try:
-        resp = client.chat.completions.create(
-            model=model,
-            messages=msgs,
-            max_tokens=4,
-            temperature=0.0,
-            logprobs=True,
-            top_logprobs=10,
-        )
-        content = (resp.choices[0].message.content or "").strip()
+        kwargs = dict(model=model, messages=msgs, max_tokens=16, temperature=0.0,
+                      logprobs=True, top_logprobs=10)
+        if extra_body:
+            kwargs["extra_body"] = extra_body
+        resp = client.chat.completions.create(**kwargs)
+        content = get_response_text(resp.choices[0].message)
         lp = resp.choices[0].logprobs
         if lp and lp.content and lp.content[0].top_logprobs:
             tokens = [t.token for t in lp.content[0].top_logprobs]
@@ -101,13 +99,11 @@ def probe(api_key: str, model: str) -> str:
 
     print("[probe] trying plain text ...")
     try:
-        resp = client.chat.completions.create(
-            model=model,
-            messages=msgs,
-            max_tokens=4,
-            temperature=0.0,
-        )
-        content = (resp.choices[0].message.content or "").strip()
+        kwargs = dict(model=model, messages=msgs, max_tokens=16, temperature=0.0)
+        if extra_body:
+            kwargs["extra_body"] = extra_body
+        resp = client.chat.completions.create(**kwargs)
+        content = get_response_text(resp.choices[0].message)
         print("  text OK. content =", repr(content))
         if re.search(r"[1-5]", content):
             return "text"
@@ -149,11 +145,32 @@ def parse_text(text):
     return float(d), p
 
 
+def get_response_text(message):
+    """Pull visible text from a DeepSeek chat message.
+
+    DeepSeek-v4 thinking mode returns the visible answer in `content`, but the
+    SDK may also expose `reasoning_content`. We concatenate both as a last
+    resort so that even thinking-mode replies surface a digit.
+    """
+    parts = []
+    content = getattr(message, "content", None) or ""
+    if content:
+        parts.append(str(content))
+    rc = getattr(message, "reasoning_content", None) or ""
+    if rc:
+        parts.append(str(rc))
+    return " ".join(parts).strip()
+
+
 async def call(client, mode, model, msgs):
-    kwargs = dict(model=model, messages=msgs, max_tokens=8, temperature=0.0)
+    kwargs = dict(model=model, messages=msgs, max_tokens=16, temperature=0.0)
     if mode == "logprobs":
         kwargs["logprobs"] = True
         kwargs["top_logprobs"] = 10
+    # deepseek-v4-flash defaults to thinking. Disable so the visible digit is
+    # emitted within max_tokens.
+    if model.startswith("deepseek-v4"):
+        kwargs["extra_body"] = {"thinking": {"type": "disabled"}}
     return await client.chat.completions.create(**kwargs)
 
 
@@ -164,7 +181,7 @@ async def score_one(client, mode, model, row, sem, retries=5):
         try:
             async with sem:
                 resp = await call(client, mode, model, msgs)
-            text_out = (resp.choices[0].message.content or "").strip()
+            text_out = get_response_text(resp.choices[0].message)
             res = None
             if mode == "logprobs":
                 res = parse_logprobs(resp.choices[0].logprobs)
@@ -239,24 +256,25 @@ async def score_dataset(df, split, mode, api_key, model, concurrency, flush_ever
 def parse_args():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("--api-key", default=os.environ.get("DEEPSEEK_API_KEY"))
-    p.add_argument("--model", default="deepseek-v4-flash",
-                   help="alternative: deepseek-chat, deepseek-v4-pro")
+    p.add_argument("--model", default="deepseek-chat",
+                   help="default deepseek-chat (non-thinking, compat alias). "
+                        "Alternatives: deepseek-v4-flash (uses extra_body=thinking:disabled), "
+                        "deepseek-v4-pro, deepseek-reasoner.")
     p.add_argument("--concurrency", type=int, default=10)
     p.add_argument("--flush-every", type=int, default=100)
     p.add_argument("--mode", default="auto", choices=["auto", "logprobs", "text"])
+    p.add_argument("--finalize", action="store_true",
+                   help="After scoring, also write oof_scores.csv, public_scores.csv, "
+                        "private_scores.csv, metrics.json and llm_zeroshot_submission.csv "
+                        "into outputs/llm_zeroshot/. Defaults off so you can inspect the "
+                        "cache first.")
+    p.add_argument("--finalize-only", action="store_true",
+                   help="Skip API calls; just rebuild the artefacts from the existing cache.")
     return p.parse_args()
 
 
 def main():
     args = parse_args()
-    if not args.api_key:
-        raise SystemExit("Set --api-key or DEEPSEEK_API_KEY env var.")
-
-    if args.mode == "auto":
-        mode = probe(args.api_key, args.model)
-    else:
-        mode = args.mode
-    print(f"[main] using mode = {mode}")
 
     train = pd.read_csv(DATA / "train.csv")
     public = pd.read_csv(DATA / "public_test.csv")
@@ -275,6 +293,22 @@ def main():
     public_full = attach(public, "public_test").reset_index(drop=True)
     private_full = attach(private, "private_test").reset_index(drop=True)
 
+    if args.finalize_only:
+        if not CACHE_PATH.exists():
+            raise SystemExit(f"no cache at {CACHE_PATH}")
+        cache = pd.read_csv(CACHE_PATH)
+        finalize(cache, train_full, public_full, private_full)
+        return
+
+    if not args.api_key:
+        raise SystemExit("Set --api-key or DEEPSEEK_API_KEY env var.")
+
+    if args.mode == "auto":
+        mode = probe(args.api_key, args.model)
+    else:
+        mode = args.mode
+    print(f"[main] using mode = {mode}")
+
     asyncio.run(score_dataset(train_full, "train", mode, args.api_key, args.model,
                               args.concurrency, args.flush_every))
     asyncio.run(score_dataset(public_full, "public_test", mode, args.api_key, args.model,
@@ -289,6 +323,109 @@ def main():
     print()
     print("Score stats:")
     print(cache.groupby("source_split")["score"].agg(["count", "mean", "std", "min", "max"]).round(3))
+
+    if args.finalize:
+        print("\n=== Finalizing artefacts ===")
+        finalize(cache, train_full, public_full, private_full)
+
+
+def finalize(cache: pd.DataFrame, train_full: pd.DataFrame,
+             public_full: pd.DataFrame, private_full: pd.DataFrame) -> None:
+    """Build oof_scores.csv, public_scores.csv, private_scores.csv,
+    metrics.json, and llm_zeroshot_submission.csv from the (cleaned) cache."""
+    from sklearn.metrics import cohen_kappa_score, mean_absolute_error, f1_score
+    from scipy.optimize import differential_evolution
+
+    sample = pd.read_csv(DATA / "Test_Submission.csv")
+    train_full = train_full.sort_values("id").reset_index(drop=True)
+    public_full = public_full.sort_values("id").reset_index(drop=True)
+    private_full = private_full.sort_values("id").reset_index(drop=True)
+
+    train_res = cache[cache["source_split"] == "train"].sort_values("id").reset_index(drop=True)
+    public_res = cache[cache["source_split"] == "public_test"].sort_values("id").reset_index(drop=True)
+    private_res = cache[cache["source_split"] == "private_test"].sort_values("id").reset_index(drop=True)
+
+    assert (train_res["id"].to_numpy() == train_full["id"].to_numpy()).all(), "train id misalignment"
+    assert (public_res["id"].to_numpy() == public_full["id"].to_numpy()).all(), "public id misalignment"
+    assert (private_res["id"].to_numpy() == private_full["id"].to_numpy()).all(), "private id misalignment"
+
+    y_class = train_full["Label"].astype(int).to_numpy()
+    train_scores = train_res["score"].to_numpy()
+    public_scores = public_res["score"].to_numpy()
+    private_scores = private_res["score"].to_numpy()
+    train_probs = train_res[["p1", "p2", "p3", "p4", "p5"]].to_numpy()
+    public_probs = public_res[["p1", "p2", "p3", "p4", "p5"]].to_numpy()
+    private_probs = private_res[["p1", "p2", "p3", "p4", "p5"]].to_numpy()
+
+    print("Mean LLM score per true label (train):")
+    print(pd.DataFrame({"true": y_class, "score": train_scores}).groupby("true")["score"]
+          .agg(["mean", "std", "count"]).round(3).to_string())
+
+    train_dist = pd.Series(y_class).value_counts(normalize=True).reindex(
+        [1, 2, 3, 4, 5], fill_value=0).to_numpy()
+
+    def s2l(s, t):
+        return np.digitize(s, np.sort(np.asarray(t, dtype=float))) + 1
+
+    def pred_dist(labels):
+        return pd.Series(labels).value_counts(normalize=True).reindex(
+            [1, 2, 3, 4, 5], fill_value=0).to_numpy()
+
+    def tune(y, scores, lambd=0.5, seed=42):
+        def obj(raw):
+            thr = np.sort(raw)
+            gap = np.min(np.diff(thr))
+            gap_pen = 0.0 if gap >= 0.03 else (0.03 - gap) * 5.0
+            labels = s2l(scores, thr)
+            qwk = cohen_kappa_score(y, labels, weights="quadratic")
+            dp = float(np.sum(np.abs(pred_dist(labels) - train_dist)))
+            return -qwk + gap_pen + lambd * dp
+        bounds = [(1.4, 2.5), (1.8, 2.9), (2.2, 3.4), (2.6, 4.2)]
+        res = differential_evolution(obj, bounds, seed=seed, maxiter=120, popsize=15,
+                                     polish=True, updating="immediate", workers=1)
+        thr = np.sort(res.x)
+        return thr, cohen_kappa_score(y, s2l(scores, thr), weights="quadratic")
+
+    thresholds, oof_qwk = tune(y_class, train_scores)
+    oof_pred = s2l(train_scores, thresholds)
+    public_pred = s2l(public_scores, thresholds)
+    private_pred = s2l(private_scores, thresholds)
+    print(f"\nConstrained-tuned OOF QWK = {oof_qwk:.4f}")
+    print(f"thresholds = {thresholds.tolist()}")
+
+    metrics = {
+        "method": "llm_zeroshot_deepseek",
+        "oof_qwk": float(oof_qwk),
+        "oof_mae": float(mean_absolute_error(y_class, oof_pred)),
+        "oof_macro_f1": float(f1_score(y_class, oof_pred, average="macro")),
+        "thresholds": [float(v) for v in thresholds],
+        "label_distribution_combined": {int(k): int(v) for k, v in pd.Series(
+            np.concatenate([public_pred, private_pred])).value_counts().sort_index().items()},
+        "label_distribution_public": {int(k): int(v) for k, v in pd.Series(public_pred).value_counts().sort_index().items()},
+        "label_distribution_private": {int(k): int(v) for k, v in pd.Series(private_pred).value_counts().sort_index().items()},
+    }
+    (RUN_DIR / "metrics.json").write_text(json.dumps(metrics, indent=2))
+    print("\n", json.dumps(metrics, indent=2))
+
+    pd.DataFrame({"id": train_full["id"], "Label": y_class,
+                  "oof_score": train_scores, "oof_pred": oof_pred,
+                  **{f"p_label_{i+1}": train_probs[:, i] for i in range(5)}}).to_csv(
+        RUN_DIR / "oof_scores.csv", index=False)
+    pd.DataFrame({"id": public_full["id"], "score": public_scores, "pred": public_pred,
+                  **{f"p_label_{i+1}": public_probs[:, i] for i in range(5)}}).to_csv(
+        RUN_DIR / "public_scores.csv", index=False)
+    pd.DataFrame({"id": private_full["id"], "score": private_scores, "pred": private_pred,
+                  **{f"p_label_{i+1}": private_probs[:, i] for i in range(5)}}).to_csv(
+        RUN_DIR / "private_scores.csv", index=False)
+
+    combo = pd.concat([
+        pd.DataFrame({"id": public_full["id"], "Label": public_pred}),
+        pd.DataFrame({"id": private_full["id"], "Label": private_pred}),
+    ], ignore_index=True)
+    submission = sample[["id"]].merge(combo, on="id", how="left")
+    submission["Label"] = submission["Label"].astype(int)
+    submission.to_csv(RUN_DIR / "llm_zeroshot_submission.csv", index=False)
+    print(f"\nWrote artefacts under {RUN_DIR}")
 
 
 if __name__ == "__main__":
