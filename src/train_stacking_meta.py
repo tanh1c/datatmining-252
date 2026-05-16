@@ -216,6 +216,13 @@ def main():
         load_specter_anchor("0.68737", "specter_5s"),
         load_specter_anchor("0.68718", "specter_v2"),
     ]
+    # Auto-include scibert if available
+    scibert_path = ROOT / "outputs" / "scibert_finetune"
+    if (scibert_path / "oof_scores.csv").exists():
+        anchors.append(load_specter_anchor("scibert_finetune", "scibert"))
+        print("[scibert] anchor included")
+    else:
+        print("[scibert] no scibert_finetune folder; skipping (run notebooks/step4_scibert_finetune.ipynb to add)")
     print("Loaded anchors:")
     for a in anchors:
         print(f"  {a.name:12s} oof={len(a.oof)} public={len(a.public)} private={len(a.private)}")
@@ -379,6 +386,48 @@ def main():
     pub_s = X_public[:, primary_idx]
     priv_s = X_private[:, primary_idx]
     evaluate("anchor_specter_3s_only", oof, pub_s, priv_s, extra=[1.0])
+
+    # 10. 3-anchor blends (only if scibert is available)
+    scibert_idx = next((i for i, a in enumerate(anchors) if a.name == "scibert"), None)
+    ridge_idx = next(i for i, a in enumerate(anchors) if a.name == "ridge_5x5")
+    if scibert_idx is not None:
+        for name, w_specter, w_ridge, w_scibert in [
+            ("blend_3anchor_60_25_15", 0.60, 0.25, 0.15),
+            ("blend_3anchor_55_25_20", 0.55, 0.25, 0.20),
+            ("blend_3anchor_50_25_25", 0.50, 0.25, 0.25),
+            ("blend_3anchor_50_30_20", 0.50, 0.30, 0.20),
+            ("blend_3anchor_45_30_25", 0.45, 0.30, 0.25),
+            ("blend_3anchor_50_20_30", 0.50, 0.20, 0.30),
+            ("blend_3anchor_60_20_20", 0.60, 0.20, 0.20),
+            ("blend_3anchor_70_15_15", 0.70, 0.15, 0.15),
+        ]:
+            w = np.zeros(X_train.shape[1])
+            w[primary_idx] = w_specter
+            w[ridge_idx] = w_ridge
+            w[scibert_idx] = w_scibert
+            oof = X_train @ w
+            pub_s = X_public @ w
+            priv_s = X_private @ w
+            evaluate(name, oof, pub_s, priv_s,
+                     extra={"specter_3s": w_specter, "ridge_5x5": w_ridge, "scibert": w_scibert})
+
+        # Also include scibert-only as sanity check
+        oof = X_train[:, scibert_idx]
+        pub_s = X_public[:, scibert_idx]
+        priv_s = X_private[:, scibert_idx]
+        evaluate("anchor_scibert_only", oof, pub_s, priv_s, extra=[1.0])
+
+        # 2-anchor scibert + specter_3s
+        for w_specter in [0.7, 0.6, 0.5]:
+            w = np.zeros(X_train.shape[1])
+            w[primary_idx] = w_specter
+            w[scibert_idx] = 1 - w_specter
+            oof = X_train @ w
+            pub_s = X_public @ w
+            priv_s = X_private @ w
+            evaluate(f"blend_specter_scibert_{int(w_specter*100)}_{int((1-w_specter)*100)}",
+                     oof, pub_s, priv_s,
+                     extra={"specter_3s": w_specter, "scibert": 1 - w_specter})
 
     # ----- Report -----
     rep = pd.DataFrame(candidates).sort_values("oof_qwk", ascending=False)
