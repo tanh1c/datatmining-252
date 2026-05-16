@@ -1,6 +1,50 @@
 # Lessons learned — for the next agent / future-me
 
 Living document. Each entry records a concrete observation we paid for in
+## L8 — LLM zero-shot has the diversity but not the signal strength
+
+**Evidence (2026-05-16):** ran DeepSeek `deepseek-v4-flash` zero-shot scoring (verbalizer trick over digit token logprobs) on the full 3090 papers. Two prompt versions:
+
+| | LLM v1 (5 examples, no reasoning) | LLM v2 (7 examples + reasoning lines) |
+| --- | ---: | ---: |
+| Mean score for true=1 | 1.62 | 1.59 |
+| Mean score for true=5 | 3.47 | 3.27 |
+| Spread (5 - 1) | 1.85 | **1.68** (worse) |
+| Constrained-tuned OOF QWK | 0.3704 | 0.3752 |
+| Pearson r vs SPECTER2 | **0.569** | **0.558** |
+
+**Key finding:** the LLM has **excellent diversity** (correlation 0.55-0.57 vs SPECTER2, much lower than the 0.948 we saw between SPECTER2 and SciBERT) but **insufficient signal strength** (OOF 0.37 vs SPECTER2 0.64).
+
+In stacking, the best LLM-blended candidates lose to the current `blend_2anchor_70_specter` best:
+
+| Candidate | OOF QWK | Test L1 |
+| --- | ---: | ---: |
+| blend_2anchor_70_specter (current best, public 0.71052) | **0.6464** | **0.152** |
+| blend_3anchor_srl_60_25_15 (60% specter + 25% ridge + 15% LLM v2) | 0.6364 | 0.213 |
+| blend_specter_llm_70_30 (70% specter + 30% LLM v2) | 0.6117 | 0.240 |
+| anchor_llm_zs_only (LLM v2 alone) | 0.3752 | 0.598 |
+
+Adding the LLM column to any blend pulls test L1 distance up by ~0.05-0.08 because LLM scores are biased toward labels 1-2 (the model "plays safe" on a niche domain it does not know well).
+
+**Why prompt v2 was no better than v1.** Adding more label-5 examples + explicit reasoning lines made the model *more* conservative on label 5, not less. With 7 examples, the few-shot pattern reinforced "look for explicit ASP+neural cues" so the model only emits 5 when the title literally says ASP and neural in the same line. Most label-5 papers in this dataset are about ASP solver / semantics work where the title does not mention "neural", and the LLM under-rates those.
+
+**Root cause.** Zero-shot LLM scoring of a niche academic relevance scale, where ground-truth labels were assigned by a human annotator with task-specific judgement, cannot beat a fine-tuned encoder that saw the labels during training. SPECTER2 fine-tune > SciBERT fine-tune > Ridge TF-IDF >> LLM zero-shot, in that order, on this dataset.
+
+**Rule of thumb.**
+- For supervised-style anchors in stacking, the new anchor needs OOF QWK of at least about **80% of the strongest existing anchor's OOF**, even when its correlation is low. Below that threshold, the noise penalty dominates the diversity benefit.
+  - SPECTER2 OOF 0.64 -> threshold ~ 0.51
+  - LLM v1 0.37, v2 0.38 -> well below threshold; predicted to hurt stack; confirmed.
+- Better diversity does **not** rescue weak signal. Diversity matters only when the anchors are individually competitive.
+- For LLM zero-shot to be useful here, we would need a model that can match SPECTER2's domain-specific calibration. That probably requires fine-tuning the LLM (defeats zero-shot) or chain-of-thought prompts that DeepSeek-flash truncates with thinking-mode token budget.
+
+**Action items.**
+- [x] Stop adding text-only base anchors. Both SciBERT (0.948 corr, +0 stack gain) and LLM zero-shot (0.55 corr, but OOF 0.37) confirm we are at the text-feature ceiling on this dataset.
+- [ ] Pivot to **non-text** signals: re-extract OpenAlex citation OOF as a continuous anchor; add venue/year-prior anchor; add first-author target encoding anchor.
+- [ ] Or accept 0.71052 as the final answer and write up the report.
+
+---
+
+
 submissions and the rule of thumb to avoid repeating the mistake.
 
 ## L7 — Stack by *test L1 distance*, not OOF QWK; minimalist 2-anchor beats 4-anchor
