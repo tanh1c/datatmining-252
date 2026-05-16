@@ -224,11 +224,14 @@ def main():
     else:
         print("[scibert] no scibert_finetune folder; skipping (run notebooks/step4_scibert_finetune.ipynb to add)")
 
-    # Auto-include LLM zero-shot if available
-    llm_path = ROOT / "outputs" / "llm_zeroshot"
+    # Auto-include LLM zero-shot if available. Prefer v2 (improved prompt)
+    # over v1 when both exist.
+    llm_v2 = ROOT / "outputs" / "llm_zeroshot_v2"
+    llm_v1 = ROOT / "outputs" / "llm_zeroshot"
+    llm_path = llm_v2 if (llm_v2 / "oof_scores.csv").exists() else llm_v1
     if (llm_path / "oof_scores.csv").exists():
-        anchors.append(load_specter_anchor("llm_zeroshot", "llm_zs"))
-        print("[llm_zs] anchor included")
+        anchors.append(load_specter_anchor(llm_path.name, "llm_zs"))
+        print(f"[llm_zs] anchor included from {llm_path.name}")
     else:
         print("[llm_zs] no llm_zeroshot folder; skipping (run notebooks/step5b_llm_zeroshot.ipynb to add)")
     print("Loaded anchors:")

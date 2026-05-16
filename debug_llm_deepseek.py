@@ -33,7 +33,7 @@ if not ABSTRACTS.exists():
     ABSTRACTS = ROOT / "outputs" / "external" / "abstracts_merged_v3.csv"
 BASE_URL = "https://api.deepseek.com"
 
-SYSTEM = """You are a research assistant specialized in classifying scientific papers by their relevance to Answer Set Programming (ASP) and the broader AI-symbolic agenda (neuro-symbolic AI, neural-network verification, explainable AI built on logic).
+SYSTEM_V1 = """You are a research assistant specialized in classifying scientific papers by their relevance to Answer Set Programming (ASP) and the broader AI-symbolic agenda (neuro-symbolic AI, neural-network verification, explainable AI built on logic).
 
 Given a paper's title and abstract, you score its ASP / AI-symbolic relevance on an integer scale 1-5.
 
@@ -44,7 +44,94 @@ Scoring rubric:
 - 4 = Applied / extending ASP. Papers that use ASP to solve a domain problem, extend ASP with new constructs (probabilities, choice, preferences, learning), or build tools / encodings on top of an ASP solver.
 - 5 = Core ASP advances or ASP × AI cross-overs. ASP solver / grounder algorithms (Clingo, DLV, ASP(Q)), formal semantics of ASP, ASP-driven learning of programs / heuristics, neuro-symbolic systems built on ASP. Inside CAV / LICS, label 5 also covers neural-network verification and ML-meets-formal-methods work.
 
+Examples:
+
+Title: Proceedings 41st International Conference on Logic Programming, ICLP 2025, Rende, Italy.
+Abstract: (no abstract available)
+Answer: 1
+
+Title: Synthesizing Reactive Systems from Hyperproperties.
+Abstract: We present an algorithm for synthesizing reactive systems from hyperproperty specifications. We focus on a fragment of HyperLTL and provide a synthesis algorithm based on bounded synthesis.
+Answer: 2
+
+Title: DatalogMTL over the Integer Timeline.
+Abstract: We study DatalogMTL, an extension of Datalog with metric temporal operators. Our main contribution is a tight characterisation of the data complexity of reasoning in the integer timeline setting.
+Answer: 3
+
+Title: An Answer Set Programming Approach to Argumentative Reasoning in the ASPIC+ Framework.
+Abstract: We present an ASP encoding of argumentative reasoning in ASPIC+. The encoding is correct and complete, and we evaluate it on benchmark instances.
+Answer: 4
+
+Title: Formally Explaining Decision Tree Models with Answer Set Programming.
+Abstract: We propose a formal framework for explaining decision tree predictions using Answer Set Programming. We provide both abductive and contrastive explanations and demonstrate the approach on standard benchmarks.
+Answer: 5
+
 Output ONLY a single digit 1, 2, 3, 4, or 5. Do not add any explanation, prefix, or suffix."""
+
+
+SYSTEM_V2 = """You are a research assistant specialized in classifying scientific papers by their relevance to Answer Set Programming (ASP) and the broader AI-symbolic agenda (neuro-symbolic AI, neural-network verification, explainable AI built on logic).
+
+Score each paper on an integer scale 1-5:
+- 1 = NOT related to ASP. Pure verification, type theory, generic logic without ASP. Proceedings volumes, workshop summaries, tutorials, short or extended-abstract entries.
+- 2 = Loose adjacency. Verification or knowledge representation with no ASP component. Logic-adjacent but core method is unrelated to Answer Set Programming.
+- 3 = Generic logic / declarative reasoning that overlaps ASP vocabulary (Prolog, Datalog, NMR, abductive reasoning, qualitative reasoning, argumentation) but does not center on ASP.
+- 4 = Applies or extends ASP. Uses ASP as a tool for a domain problem (planning, scheduling, configuration, etc.), extends ASP with new constructs (probabilities, choice, preferences, learning), or builds tools / encodings on top of an ASP solver.
+- 5 = Core ASP advances OR ASP times AI cross-overs. Solver / grounder / formal-semantics work directly on ASP. ASP times neural networks, ASP times LLMs, neuro-symbolic systems built on ASP. Inside CAV / LICS venues, also covers neural-network verification and ML-meets-formal-methods work.
+
+Reasoning chain to follow internally before answering:
+1. Scan the title for explicit ASP cues: "asp", "answer set", "clingo", "dlv", "stable model", "aspq", "grounder", "ilasp".
+2. Scan title + abstract for AI-symbolic cues: "neural", "neuro-symbolic", "deep learning", "llm", "transformer", "explainability".
+3. Scan for low-signal cues: "proceedings", "workshop summary", "(short paper)", "(extended abstract)".
+4. Pick the highest-matching label using this priority: explicit ASP cue > AI-symbolic cue > logic-adjacent > generic.
+
+Examples below illustrate the rubric. The "Reasoning" line is for your internal calibration only - do not output it; output only the digit.
+
+Example 1
+Title: Branching Bisimulation Learning.
+Abstract: We present a learning-based algorithm for inferring branching bisimulation equivalences over labelled transition systems. Our approach handles both finite and parametric systems through a modular tower construction.
+Reasoning: Verification / formal-methods topic. No ASP, no neural networks, no neuro-symbolic. Generic verification.
+Answer: 1
+
+Example 2
+Title: Synthesizing Reactive Systems from Hyperproperties.
+Abstract: We present an algorithm for synthesizing reactive systems from hyperproperty specifications. We focus on a fragment of HyperLTL and provide a bounded-synthesis algorithm.
+Reasoning: Synthesis is verification with an applied flavour. No ASP. Closer to applied verification than pure type theory.
+Answer: 2
+
+Example 3
+Title: A Principle-based Analysis of Abstract Agent Argumentation Semantics.
+Abstract: We extend Dung's argumentation theory with agents and study four types of semantics including agent-defense and social-agent semantics.
+Reasoning: Argumentation theory, KR-adjacent. Uses logic-programming-style semantics but no Answer Set Programming or solver work.
+Answer: 3
+
+Example 4
+Title: ASP and PDDL+ Applications in Urban Traffic Distribution and Control.
+Abstract: Answer Set Programming (ASP) and the mixed discrete-continuous variant PDDL+ are well-known knowledge representation methodologies. We focus on recent problems modeled with ASP and PDDL+ in the context of urban traffic management.
+Reasoning: Title says ASP. Abstract uses ASP for an urban-traffic application. Applied ASP problem-solving.
+Answer: 4
+
+Example 5
+Title: Neural-Probabilistic Answer Set Programming.
+Abstract: We combine the robustness of neural networks with the expressivity of symbolic methods, in a deep probabilistic logical programming framework that carries out probabilistic logical programming via the probability estimations of deep neural networks.
+Reasoning: Title combines Neural and Answer Set Programming explicitly. Pure neuro-symbolic ASP work.
+Answer: 5
+
+Example 6
+Title: Leveraging Large Language Models to Generate Answer Set Programs.
+Abstract: Large language models have demonstrated strong performance in natural language processing but their reasoning capabilities are limited. We use LLMs to translate natural-language descriptions into Answer Set Programs that can then be solved by a logic engine.
+Reasoning: Title has both LLM and Answer Set Programs. ASP times LLM cross-over.
+Answer: 5
+
+Example 7
+Title: Extending Answer Set Programs with Neural Networks.
+Abstract: We extend answer set programs with neural network components, integrating low-level perception with high-level reasoning. The framework supports end-to-end training with neural classifiers grounded inside the ASP solver.
+Reasoning: Title says "Extending Answer Set Programs with Neural Networks". Core ASP + neural cross-over.
+Answer: 5
+
+Output ONLY a single digit 1, 2, 3, 4, or 5. Do not add the reasoning, any prefix, or any suffix."""
+
+
+SYSTEM = SYSTEM_V1   # default; overridden by --prompt-version
 
 
 def build_user(title, abstract):
@@ -266,15 +353,31 @@ def parse_args():
     p.add_argument("--finalize", action="store_true",
                    help="After scoring, also write oof_scores.csv, public_scores.csv, "
                         "private_scores.csv, metrics.json and llm_zeroshot_submission.csv "
-                        "into outputs/llm_zeroshot/. Defaults off so you can inspect the "
-                        "cache first.")
+                        "into outputs/llm_zeroshot/ (or outputs/llm_zeroshot_v2/). "
+                        "Defaults off so you can inspect the cache first.")
     p.add_argument("--finalize-only", action="store_true",
                    help="Skip API calls; just rebuild the artefacts from the existing cache.")
+    p.add_argument("--prompt-version", default="v1", choices=["v1", "v2"],
+                   help="v1 = original 5-example prompt; v2 = 7-example prompt with internal "
+                        "reasoning lines that combat the under-rating bias on labels 4-5. "
+                        "v2 writes its cache and artefacts under outputs/llm_zeroshot_v2/.")
     return p.parse_args()
 
 
 def main():
     args = parse_args()
+
+    # Redirect cache + run dir if using a different prompt version
+    global SYSTEM, RUN_DIR, CACHE_PATH
+    if args.prompt_version == "v2":
+        SYSTEM = SYSTEM_V2
+        RUN_DIR = ROOT / "outputs" / "llm_zeroshot_v2"
+        RUN_DIR.mkdir(parents=True, exist_ok=True)
+        CACHE_PATH = RUN_DIR / "llm_raw_cache.csv"
+    else:
+        SYSTEM = SYSTEM_V1
+
+    print(f"[main] prompt_version = {args.prompt_version}, RUN_DIR = {RUN_DIR}")
 
     train = pd.read_csv(DATA / "train.csv")
     public = pd.read_csv(DATA / "public_test.csv")
