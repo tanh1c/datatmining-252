@@ -224,6 +224,14 @@ def main():
     else:
         print("[scibert] no scibert_finetune folder; skipping (run notebooks/step4_scibert_finetune.ipynb to add)")
 
+    # Auto-include scincl (SPECTER successor) if available
+    scincl_path = ROOT / "outputs" / "scincl_finetune"
+    if (scincl_path / "oof_scores.csv").exists():
+        anchors.append(load_specter_anchor("scincl_finetune", "scincl"))
+        print("[scincl] anchor included")
+    else:
+        print("[scincl] no scincl_finetune folder; skipping (run notebooks/step6_scincl_finetune.ipynb to add)")
+
     # Auto-include LLM zero-shot if available. Prefer v2 (improved prompt)
     # over v1 when both exist.
     llm_v2 = ROOT / "outputs" / "llm_zeroshot_v2"
@@ -397,6 +405,44 @@ def main():
     pub_s = X_public[:, primary_idx]
     priv_s = X_private[:, primary_idx]
     evaluate("anchor_specter_3s_only", oof, pub_s, priv_s, extra=[1.0])
+
+    # 9b. SciNCL anchor-only + 2-anchor scincl + ridge blends (if available)
+    scincl_idx = next((i for i, a in enumerate(anchors) if a.name == "scincl"), None)
+    if scincl_idx is not None:
+        oof = X_train[:, scincl_idx]
+        pub_s = X_public[:, scincl_idx]
+        priv_s = X_private[:, scincl_idx]
+        evaluate("anchor_scincl_only", oof, pub_s, priv_s, extra=[1.0])
+
+        for w_scincl in [0.5, 0.6, 0.7, 0.8]:
+            w = np.zeros(X_train.shape[1])
+            w[scincl_idx] = w_scincl
+            w[ridge_idx] = 1 - w_scincl
+            oof = X_train @ w
+            pub_s = X_public @ w
+            priv_s = X_private @ w
+            evaluate(f"blend_scincl_ridge_{int(w_scincl*100)}_{int((1-w_scincl)*100)}",
+                     oof, pub_s, priv_s,
+                     extra={"scincl": w_scincl, "ridge_5x5": 1 - w_scincl})
+
+        # 3-anchor: scincl + specter_3s + ridge (combine the two strongest BERT anchors + lexical)
+        for name, w_scincl, w_specter, w_ridge in [
+            ("blend_3anchor_scincl_specter_ridge_50_30_20", 0.50, 0.30, 0.20),
+            ("blend_3anchor_scincl_specter_ridge_45_35_20", 0.45, 0.35, 0.20),
+            ("blend_3anchor_scincl_specter_ridge_40_40_20", 0.40, 0.40, 0.20),
+            ("blend_3anchor_scincl_specter_ridge_60_20_20", 0.60, 0.20, 0.20),
+            ("blend_3anchor_scincl_specter_ridge_50_20_30", 0.50, 0.20, 0.30),
+            ("blend_3anchor_scincl_specter_ridge_35_35_30", 0.35, 0.35, 0.30),
+        ]:
+            w = np.zeros(X_train.shape[1])
+            w[scincl_idx] = w_scincl
+            w[primary_idx] = w_specter
+            w[ridge_idx] = w_ridge
+            oof = X_train @ w
+            pub_s = X_public @ w
+            priv_s = X_private @ w
+            evaluate(name, oof, pub_s, priv_s,
+                     extra={"scincl": w_scincl, "specter_3s": w_specter, "ridge_5x5": w_ridge})
 
     # 10. 3-anchor blends (only if scibert is available)
     scibert_idx = next((i for i, a in enumerate(anchors) if a.name == "scibert"), None)
