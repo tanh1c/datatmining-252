@@ -223,6 +223,14 @@ def main():
         print("[scibert] anchor included")
     else:
         print("[scibert] no scibert_finetune folder; skipping (run notebooks/step4_scibert_finetune.ipynb to add)")
+
+    # Auto-include LLM zero-shot if available
+    llm_path = ROOT / "outputs" / "llm_zeroshot"
+    if (llm_path / "oof_scores.csv").exists():
+        anchors.append(load_specter_anchor("llm_zeroshot", "llm_zs"))
+        print("[llm_zs] anchor included")
+    else:
+        print("[llm_zs] no llm_zeroshot folder; skipping (run notebooks/step5b_llm_zeroshot.ipynb to add)")
     print("Loaded anchors:")
     for a in anchors:
         print(f"  {a.name:12s} oof={len(a.oof)} public={len(a.public)} private={len(a.private)}")
@@ -428,6 +436,70 @@ def main():
             evaluate(f"blend_specter_scibert_{int(w_specter*100)}_{int((1-w_specter)*100)}",
                      oof, pub_s, priv_s,
                      extra={"specter_3s": w_specter, "scibert": 1 - w_specter})
+
+    # 11. LLM zero-shot blends (only if available)
+    llm_idx = next((i for i, a in enumerate(anchors) if a.name == "llm_zs"), None)
+    if llm_idx is not None:
+        # Anchor-only sanity
+        oof = X_train[:, llm_idx]
+        pub_s = X_public[:, llm_idx]
+        priv_s = X_private[:, llm_idx]
+        evaluate("anchor_llm_zs_only", oof, pub_s, priv_s, extra=[1.0])
+
+        # 2-anchor specter + llm
+        for w_specter in [0.7, 0.6, 0.5]:
+            w = np.zeros(X_train.shape[1])
+            w[primary_idx] = w_specter
+            w[llm_idx] = 1 - w_specter
+            oof = X_train @ w
+            pub_s = X_public @ w
+            priv_s = X_private @ w
+            evaluate(f"blend_specter_llm_{int(w_specter*100)}_{int((1-w_specter)*100)}",
+                     oof, pub_s, priv_s,
+                     extra={"specter_3s": w_specter, "llm_zs": 1 - w_specter})
+
+        # 3-anchor: specter + ridge + llm
+        for name, w_specter, w_ridge, w_llm in [
+            ("blend_3anchor_srl_60_25_15", 0.60, 0.25, 0.15),
+            ("blend_3anchor_srl_55_25_20", 0.55, 0.25, 0.20),
+            ("blend_3anchor_srl_50_25_25", 0.50, 0.25, 0.25),
+            ("blend_3anchor_srl_50_30_20", 0.50, 0.30, 0.20),
+            ("blend_3anchor_srl_45_30_25", 0.45, 0.30, 0.25),
+            ("blend_3anchor_srl_50_20_30", 0.50, 0.20, 0.30),
+            ("blend_3anchor_srl_60_20_20", 0.60, 0.20, 0.20),
+            ("blend_3anchor_srl_70_15_15", 0.70, 0.15, 0.15),
+            ("blend_3anchor_srl_40_30_30", 0.40, 0.30, 0.30),
+            ("blend_3anchor_srl_35_30_35", 0.35, 0.30, 0.35),
+        ]:
+            w = np.zeros(X_train.shape[1])
+            w[primary_idx] = w_specter
+            w[ridge_idx] = w_ridge
+            w[llm_idx] = w_llm
+            oof = X_train @ w
+            pub_s = X_public @ w
+            priv_s = X_private @ w
+            evaluate(name, oof, pub_s, priv_s,
+                     extra={"specter_3s": w_specter, "ridge_5x5": w_ridge, "llm_zs": w_llm})
+
+        # 4-anchor: specter + ridge + scibert + llm (only if scibert too)
+        if scibert_idx is not None:
+            for name, w_s3, w_r, w_sb, w_llm_v in [
+                ("blend_4anchor_50_20_15_15", 0.50, 0.20, 0.15, 0.15),
+                ("blend_4anchor_45_25_15_15", 0.45, 0.25, 0.15, 0.15),
+                ("blend_4anchor_40_25_15_20", 0.40, 0.25, 0.15, 0.20),
+                ("blend_4anchor_50_25_10_15", 0.50, 0.25, 0.10, 0.15),
+            ]:
+                w = np.zeros(X_train.shape[1])
+                w[primary_idx] = w_s3
+                w[ridge_idx] = w_r
+                w[scibert_idx] = w_sb
+                w[llm_idx] = w_llm_v
+                oof = X_train @ w
+                pub_s = X_public @ w
+                priv_s = X_private @ w
+                evaluate(name, oof, pub_s, priv_s,
+                         extra={"specter_3s": w_s3, "ridge_5x5": w_r,
+                                "scibert": w_sb, "llm_zs": w_llm_v})
 
     # ----- Report -----
     rep = pd.DataFrame(candidates).sort_values("oof_qwk", ascending=False)
