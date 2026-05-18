@@ -1,6 +1,59 @@
 # Lessons learned — for the next agent / future-me
 
 Living document. Each entry records a concrete observation we paid for in
+## L13 — BGE-large-en-v1.5 cleared the L11/L12 floors and lifted the stack; OOF→public discount was 6×
+
+**Evidence (2026-05-18):** fine-tuned `BAAI/bge-large-en-v1.5` (335M, BERT-large arch, mean pool, bf16) on `title + abstract`, 5 folds × 3 seeds = 15 models. First text encoder since SciNCL (May 14) to lift the stack.
+
+**Floor checks (per L12):**
+
+| Floor | Required | BGE | Pass? |
+| --- | --- | --- | --- |
+| Signal floor (OOF round-QWK ≥ 0.51) | yes | 0.6228 | ✓ |
+| Diversity floor (r vs SPECTER2 < 0.95) | yes | 0.909 | ✓ |
+
+The diversity number is the key. SciBERT (0.948), SPECTER2 v2 (0.98+), and SciNCL (0.943) all sat above 0.94; BGE at 0.909 is the first text encoder to live in the 0.85-0.92 sweet spot **and** clear the signal floor at the same time.
+
+**Why BGE worked where DeBERTa-v3 didn't (a model lineage lesson):**
+- DeBERTa-v3 was pre-trained with **Replaced Token Detection** (ELECTRA-style) on CommonCrawl + Wikipedia + Books. No semantic-similarity inductive bias. Generic large.
+- BGE was pre-trained with **RetroMAE + contrastive sentence-pair similarity** on a massive web-pair corpus. The objective is structurally close to SPECTER2's triplet citation contrastive — both push semantically related sequences together in embedding space.
+- The pre-training objective predicted transfer better than capacity. BGE (335M) lifted; DeBERTa-v3 (435M) didn't. **Objective family > parameter count.**
+
+**Stacking sweep (32 weight combinations) and pick:**
+
+| Candidate | OOF QWK | Test L1 | Public LB |
+| --- | ---: | ---: | ---: |
+| 60/20/20 anchor (no bge) | 0.6412 | 0.162 | 0.72103 |
+| **safest: bge 0.40 / scincl 0.40 / specter 0.15 / ridge 0.05** | **0.6567** | **0.156** | **0.72374** |
+| single_knob: 0.30 / 0.40 / 0.10 / 0.20 | 0.6572 | 0.158 | not submitted |
+| high_signal: 0.25 / 0.25 / 0.25 / 0.25 | 0.6593 | 0.172 | not submitted |
+
+L7/L9 ranking (test L1 first) picked `safest`. **Lift was real but smaller than predicted:** OOF +0.0155 → public +0.0027, an OOF→public discount of ~6×.
+
+**Why the discount was so large:**
+- SciNCL anchor (`0.72103`, May 16) had OOF *negative* (−0.0050) but public *positive* (+0.011). Different sign pattern.
+- BGE anchor (`0.72374`, this) had OOF positive (+0.0155) and public positive but small (+0.0027).
+- Public split is ~50% of test (596 of 596 rows visible to LB), private is the other 50%. We changed the **distribution** more than the SciNCL pick did (combined dist `{1:256, 2:129, 3:101, 4:66, 5:44}` vs anchor `{1:264, 2:123, 3:99, 4:67, 5:43}`, swapping ~10 rows around label 1↔2 and 3↔4). Public was relatively insensitive to those particular swaps.
+
+**Rule of thumb (refines L7).**
+
+- The OOF→public ratio is **not** stable across submissions. We've seen 4 distinct patterns now in `outputs/leaderboard_tracking.md`:
+  - Stack-improvement-by-distribution (label4_more_mid: OOF +0.001, public +0.017): predicted distribution change is the dominant lever.
+  - Stack-improvement-by-anchor-replacement (SciNCL `0.72103`: OOF −0.005, public +0.011): a new diverse signal can flip the OOF→public sign.
+  - Stack-improvement-by-anchor-addition (BGE `0.72374`: OOF +0.015, public +0.003): a new anchor with high diversity-clear lifts both, but with shrinkage.
+  - Anchor-redundancy regression (3-seed → 5-seed SPECTER2: OOF +0.006, public −0.012): more of the same signal hurts.
+- Submission picks should still rank by test L1 first, but **expectations on the lift should be set conservatively** — assume a 3-6× OOF→public discount unless predicted distribution moves substantially in the same direction as a *previously-confirmed-good* shift (e.g., the label-4 expansion that gave +0.017).
+- One submission per day is the right pace. Don't fire 3 candidates at once: each result narrows the next pick, and submission slots are scarce.
+
+**Action items.**
+- [x] Add BGE-large to the standard anchor toolkit. Recipe (`notebooks/step9_bge_large_finetune.ipynb`) is hardened from step 8 lessons (fp32 load, mean pool, NaN guard).
+- [ ] Submit `single_knob` (30/40/10/20) next — has near-identical OOF/L1 to `safest` but keeps ridge at 0.20 (L10 public-safe). Either it confirms the winning region or it tells us the bge=0.40 specifically matters.
+- [ ] Try `e5-large-v2` as a 5th anchor (same family as BGE — contrastive sentence similarity).
+- [ ] When we have 5 anchors, do a single round of meta-Ridge stacking *with strong L1 regularization* on the 5 OOFs. Don't repeat the L7 mistake (top-OOF meta-model dropped the public-validated anchor) — keep BGE/SciNCL weights bounded ≥ 0.20 each.
+
+---
+
+
 ## L12 — Non-text anchors also fail the signal-floor rule; diversity is necessary but not sufficient
 
 **Evidence (2026-05-18):** built an OpenAlex continuous OOF anchor (Huber regressor over DOI + title-search citation features + venue/year/author target encoding, 5 folds × 3 seeds = 15 models). Despite being the **most diverse** candidate ever tried, it failed the blend probe.

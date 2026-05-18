@@ -1,0 +1,98 @@
+[
+  {
+    "label": "safest",
+    "weights": {
+      "bge": 0.4,
+      "scincl": 0.4,
+      "specter": 0.15,
+      "ridge": 0.05
+    },
+    "oof_qwk": 0.6566672624716823,
+    "test_l1": 0.15561912348024518,
+    "thresholds": [
+      1.8971223780368354,
+      2.4948703624322937,
+      3.1821690644565774,
+      4.001690199461446
+    ],
+    "pub_dist": {
+      "1": 119,
+      "2": 67,
+      "3": 55,
+      "4": 36,
+      "5": 21
+    },
+    "pri_dist": {
+      "1": 137,
+      "2": 62,
+      "3": 46,
+      "4": 30,
+      "5": 23
+    },
+    "submission": "C:\\Users\\LG\\Desktop\\Study Material\\DataMining\\Assignment\\outputs\\submissions\\next_bge_4anchor_safest_submission.csv"
+  },
+  {
+    "label": "high_signal",
+    "weights": {
+      "bge": 0.25,
+      "scincl": 0.25,
+      "specter": 0.25,
+      "ridge": 0.25
+    },
+    "oof_qwk": 0.6593366127420917,
+    "test_l1": 0.1723976469701781,
+    "thresholds": [
+      1.9584349806917059,
+      2.4869769024017714,
+      3.120300104391668,
+      3.867257344212784
+    ],
+    "pub_dist": {
+      "1": 121,
+      "2": 66,
+      "3": 54,
+      "4": 34,
+      "5": 23
+    },
+    "pri_dist": {
+      "1": 140,
+      "2": 63,
+      "3": 43,
+      "4": 30,
+      "5": 22
+    },
+    "submission": "C:\\Users\\LG\\Desktop\\Study Material\\DataMining\\Assignment\\outputs\\submissions\\next_bge_4anchor_high_signal_submission.csv"
+  },
+  {
+    "label": "single_knob",
+    "weights": {
+      "bge": 0.3,
+      "scincl": 0.4,
+      "specter": 0.1,
+      "ridge": 0.2
+    },
+    "oof_qwk": 0.657159471169554,
+    "test_l1": 0.15841240453598704,
+    "thresholds": [
+      1.9528220557682388,
+      2.47815063807504,
+      3.1213600146756573,
+      3.8958999607146585
+    ],
+    "pub_dist": {
+      "1": 123,
+      "2": 62,
+      "3": 55,
+      "4": 36,
+      "5": 22
+    },
+    "pri_dist": {
+      "1": 140,
+      "2": 60,
+      "3": 46,
+      "4": 32,
+      "5": 20
+    },
+    "submission": "C:\\Users\\LG\\Desktop\\Study Material\\DataMining\\Assignment\\outputs\\submissions\\next_bge_4anchor_single_knob_submission.csv"
+  }
+]

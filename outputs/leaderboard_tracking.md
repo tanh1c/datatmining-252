@@ -36,6 +36,7 @@ should not be treated as the final objective.
 | **0.71052** | `outputs/0.71052/blend_2anchor_70_specter_submission.csv` | Stacking step 5 — `0.7 * specter_3s_oof + 0.3 * ridge_5x5_oof`, distribution-constrained thresholds | 0.646351 | First submission to break 0.70. +0.011 over 0.69972. 2-anchor minimalist blend (1 semantic + 1 lexical) beat 4-anchor stacks. |
 | **0.72103** | `outputs/0.72103/blend_3anchor_scincl_specter_ridge_60_20_20_submission.csv` | **Stacking step 6 — `0.6 * scincl + 0.2 * specter_3s + 0.2 * ridge_5x5`, distribution-constrained thresholds** | **0.641159** | **NEW BEST — first submission past 0.72. +0.011 over 0.71052. SciNCL added genuine signal despite Pearson 0.943 correlation with SPECTER2 and slightly lower OOF (0.6269). Both heuristics (OOF QWK and test L1) said "do not submit"; submitted anyway as a hedge with the lowest-test-L1 SciNCL candidate. See L9 in lessons_learned.md.** |
 | 0.71622 | `outputs/0.71622/blend_3anchor_scincl_specter_ridge_70_20_10_submission.csv` | Sweep around 60/20/20 — 70% scincl + 20% specter + 10% ridge | 0.639286 | Regression vs 0.72103 (−0.005). Lower test L1 (0.158) and slightly lower OOF (-0.002) both said "might transfer", but reducing Ridge from 20% to 10% hurt. See L10 in lessons_learned.md. |
+| **0.72374** | `outputs/submissions/next_bge_4anchor_safest_submission.csv` | **Step 10 — 4-anchor stack `bge 0.40 / scincl 0.40 / specter 0.15 / ridge 0.05`, distribution-constrained thresholds** | **0.6567** | **NEW BEST — first submission past 0.72103. +0.00271 over previous best. BGE-large-en-v1.5 fine-tune cleared both L12 floors (signal 0.6228, r 0.909 vs SPECTER2). Picked by L7/L9: lowest test_L1 (0.1556) among candidates with OOF > anchor + 0.005. OOF lift +0.0155 translated to only +0.003 public — see L13 in lessons_learned.md. |
 | not submitted | `outputs/deberta_v3_finetune_outputs/deberta_v3_finetune/` | DeBERTa-v3-large fine-tune (435M, mean pool + LLRD 0.95, fp32) | 0.568894 | **Dropped, never submitted.** Round-QWK 0.5511 vs SPECTER2 0.6297 / SciNCL 0.6117. Pearson r 0.848 vs SPECTER2 — diverse but weak signal. Adding to the 60/20/20 anchor at any weight 5-20% **regressed** OOF round-QWK from 0.6074 to 0.5978. See L11 in lessons_learned.md. |
 | not submitted | `outputs/openalex_anchor/` | OpenAlex non-text anchor (Huber over DOI+title-search citation features + venue/year/author target encoding, 5x3) | 0.364627 | **Dropped, never submitted.** Round-QWK 0.2570 (signal too weak) but Pearson r only 0.499 vs SPECTER2 (most diverse candidate ever). Best blend `ridge -0.05 +openalex 0.05` lifts round-QWK by +0.0008 — within noise band. Citation features track impact, not ASP relevance. See L12 in lessons_learned.md. |
 
@@ -605,7 +606,7 @@ above):
 | --- | --- | --- |
 | ~~DeBERTa-v3-large~~ | ~~more diverse signal~~ | **Dropped (L11)** — generic CC pretraining mismatched scientific text |
 | ~~OpenAlex citation OOF as continuous anchor~~ | ~~non-text signal; uncorrelated with all text encoders~~ | **Dropped (L12)** — most diverse candidate ever (r 0.499) but signal too weak (OOF 0.257); citations track impact, not ASP relevance |
-| `bge-large-en-v1.5` or `e5-large-v2` | also generic-large, but pre-trained with **contrastive sentence similarity** — closer to SPECTER2's objective, signal more likely to transfer | **next** (step 9) |
+| `bge-large-en-v1.5` or `e5-large-v2` | also generic-large, but pre-trained with **contrastive sentence similarity** — closer to SPECTER2's objective, signal more likely to transfer | **DONE — public 0.72374** (step 9 + step 10), see "After 0.72374" below |
 | Venue / first-author target encoding | non-text signal; cheap | not yet tried |
 | Qwen2.5-7B / Llama-3.1-8B LoRA fine-tune | LLM zero-shot lacked signal (L8); fine-tune may work where DeBERTa-v3 didn't because reasoning span differs from CLS pooling | bigger bet (3-4h GPU) |
 
@@ -665,7 +666,58 @@ Updated direction (replacing the row in the bge/openalex table above):
 
 | Idea | Why | Status |
 | --- | --- | --- |
-| `bge-large-en-v1.5` or `e5-large-v2` | contrastive sentence similarity (closer to SPECTER2's objective than DeBERTa-v3 RTD) | **next** (step 9) |
+| `bge-large-en-v1.5` or `e5-large-v2` | contrastive sentence similarity (closer to SPECTER2's objective than DeBERTa-v3 RTD) | **DONE — public 0.72374** (step 9 + step 10) |
 | Re-purpose OpenAlex features as **inputs** to the Ridge anchor | the original 0.63064 OpenAlex Huber meta worked publicly *as a meta-blend*, not as a standalone anchor — feed citation features into Ridge instead of stacking | not yet tried |
 | Venue / first-author target encoding (already inside OpenAlex anchor) | re-test by feeding into Ridge alone | not yet tried |
 | Qwen2.5-7B LoRA fine-tune | LLM zero-shot lacked signal (L8); fine-tune may differ in reasoning span | bigger bet (3-4h GPU) |
+
+
+## After 0.72374 — BGE-large 4-anchor stack (NEW BEST, breaks 0.72103)
+
+A 4-anchor weighted blend `bge 0.40 / scincl 0.40 / specter 0.15 /
+ridge 0.05` with distribution-constrained threshold tuner pushed Public
+LB from `0.72103` to **`0.72374`**, a `+0.00271` improvement. Recipe in
+`outputs/step10_bge_stack/safest/`.
+
+This validates BGE-large-en-v1.5 as the **first text encoder anchor
+since SciNCL** (May 14) to lift the stack. Both L11/L12 floors cleared:
+
+| Anchor | OOF | Pearson r vs SPECTER2 | Notes |
+| --- | ---: | ---: | --- |
+| BGE-large-en-v1.5 | 0.6228 | 0.909 | new (step 9) |
+| SPECTER2 | 0.6297 | 1.000 | unchanged |
+| SciNCL | 0.6117 | 0.943 | unchanged |
+| Ridge 5×5 | 0.4353 | 0.811 | unchanged |
+
+Picked by L7/L9 ranking (test L1 first, OOF QWK second):
+
+| Candidate | OOF QWK | Test L1 | Public LB |
+| --- | ---: | ---: | ---: |
+| anchor (60/20/20, no bge) | 0.6412 | 0.162 | 0.72103 |
+| **safest: 40/40/15/05** | **0.6567** | **0.156** | **0.72374** ⭐ |
+| single_knob: 30/40/10/20 | 0.6572 | 0.158 | not submitted |
+| high_signal: 25/25/25/25 | 0.6593 | 0.172 | not submitted |
+
+The OOF lift was `+0.0155` but only `+0.0027` translated to public —
+about a 6:1 OOF-to-public discount. Compare to SciNCL (`0.72103`) which
+had OOF lift `−0.0050` but `+0.011` public lift (negative OOF correlation
+to public). The two patterns are inconsistent, which is why **L7's
+"rank by test L1 first" rule keeps mattering**: the picked candidate had
+the lowest test L1 (0.156, *below* the anchor), so the public lift was
+modest but positive rather than risking a regression.
+
+### Where to go next
+
+| Idea | Expected gain | Cost |
+| --- | --- | --- |
+| Submit `single_knob` (30/40/10/20) — test whether higher specter weight helps | ±0.003 | 1 daily slot |
+| Submit `high_signal` (25/25/25/25) — test whether higher OOF beats lower test L1 | ±0.005 | 1 daily slot |
+| Sweep around the new winner (40/40/15/05): 40/40/10/10, 35/45/15/05, 45/35/15/05 | +0.000 → +0.005 | 1 daily slot |
+| `e5-large-v2` fine-tune as a 5th anchor | +0.005 → +0.010 | ~45 min GPU |
+| Qwen2.5-7B LoRA fine-tune (L8 fix) | +0.012 → +0.020 (untested) | 3-4h GPU |
+
+Top priority: try `single_knob` next — it has nearly identical OOF to
+`safest` (0.6572 vs 0.6567), test_L1 within 0.003 (0.158 vs 0.156), but
+keeps ridge at the public-validated 0.20 (per L10). If it scores
+≥ 0.72374 we have two confirmation points; if below we know the 0.40
+ridge knob doesn't transfer here either.
