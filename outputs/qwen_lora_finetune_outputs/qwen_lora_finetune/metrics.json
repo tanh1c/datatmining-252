@@ -1,0 +1,79 @@
+{
+  "method": "qwen_lora_finetune",
+  "model": "Qwen/Qwen2.5-7B-Instruct",
+  "folds": 5,
+  "seeds": [
+    252
+  ],
+  "epochs": 3,
+  "max_len": 1024,
+  "batch_train": 16,
+  "grad_accum_steps": 1,
+  "lr": 0.0002,
+  "lora_r": 32,
+  "lora_alpha": 64,
+  "amp_dtype": "bf16",
+  "inference": "verbalizer (softmax over digit tokens, expected value)",
+  "oof_qwk": 0.6345970600433608,
+  "oof_mae": 0.8003207698476343,
+  "oof_macro_f1": 0.3934223267126222,
+  "thresholds": [
+    1.7850989796439778,
+    2.472101255138251,
+    3.190532327040462,
+    4.043021721063746
+  ],
+  "label_distribution_combined": {
+    "1": 253,
+    "2": 138,
+    "3": 108,
+    "4": 62,
+    "5": 35
+  },
+  "label_distribution_public": {
+    "1": 118,
+    "2": 71,
+    "3": 55,
+    "4": 37,
+    "5": 17
+  },
+  "label_distribution_private": {
+    "1": 135,
+    "2": 67,
+    "3": 53,
+    "4": 25,
+    "5": 18
+  },
+  "fold_log": [
+    {
+      "seed": 252,
+      "fold": 1,
+      "best_round_qwk": 0.6488027407890662,
+      "minutes": 8.51
+    },
+    {
+      "seed": 252,
+      "fold": 2,
+      "best_round_qwk": 0.6144682208564494,
+      "minutes": 8.3
+    },
+    {
+      "seed": 252,
+      "fold": 3,
+      "best_round_qwk": 0.6094067913290464,
+      "minutes": 8.19
+    },
+    {
+      "seed": 252,
+      "fold": 4,
+      "best_round_qwk": 0.635107658381491,
+      "minutes": 8.28
+    },
+    {
+      "seed": 252,
+      "fold": 5,
+      "best_round_qwk": 0.65340240507419,
+      "minutes": 8.21
+    }
+  ]
+}
