@@ -38,6 +38,7 @@ should not be treated as the final objective.
 | 0.71622 | `outputs/0.71622/blend_3anchor_scincl_specter_ridge_70_20_10_submission.csv` | Sweep around 60/20/20 — 70% scincl + 20% specter + 10% ridge | 0.639286 | Regression vs 0.72103 (−0.005). Lower test L1 (0.158) and slightly lower OOF (-0.002) both said "might transfer", but reducing Ridge from 20% to 10% hurt. See L10 in lessons_learned.md. |
 | **0.72374** | `outputs/submissions/next_bge_4anchor_safest_submission.csv` | **Step 10 — 4-anchor stack `bge 0.40 / scincl 0.40 / specter 0.15 / ridge 0.05`, distribution-constrained thresholds** | **0.6567** | **NEW BEST — first submission past 0.72103. +0.00271 over previous best. BGE-large-en-v1.5 fine-tune cleared both L12 floors (signal 0.6228, r 0.909 vs SPECTER2). Picked by L7/L9: lowest test_L1 (0.1556) among candidates with OOF > anchor + 0.005. OOF lift +0.0155 translated to only +0.003 public — see L13 in lessons_learned.md. |
 | 0.70965 | `outputs/submissions/next_bge_4anchor_single_knob_submission.csv` | Step 10 follow-up — `bge 0.30 / scincl 0.40 / specter 0.10 / ridge 0.20` | 0.6572 | **Regression** vs `safest` (−0.01409). Multi-knob change (ridge 0.05→0.20, bge 0.40→0.30, specter 0.15→0.10) — primary culprit is ridge ↑0.15 since BGE already carries lexical-adjacent signal (r 0.818 vs ridge), making heavy ridge double-counting. **L14:** public-validated weights are stack-configuration-specific; L10's "ridge=0.20 safe" rule was for the 3-anchor SciNCL/SPECTER/Ridge stack, does NOT transfer when BGE is added. |
+| **0.72394** | `outputs/submissions/next_e5_4anchor_safest_e5_submission.csv` | **Step 13 — E5 4-anchor stack `e5 0.50 / scincl 0.30 / specter 0.20 / ridge 0.00`, distribution-constrained thresholds** | **0.6593** | **NEW BEST — +0.00020 over BGE safest (0.72374). E5-large-v2 OOF 0.6417 (highest single-anchor) but r 0.944 vs BGE = same-family redundancy (L7 boundary). Lift was tiny because E5 = "better BGE" not "new anchor". Picked by L7/L9: lowest test_L1 0.1422 in any sweep (vs anchor 0.156). Step 13 confirmed E5+BGE 5-anchor stacks always underperform 4-anchor with E5 replacing BGE. See L15 in lessons_learned.md. |
 | not submitted | `outputs/deberta_v3_finetune_outputs/deberta_v3_finetune/` | DeBERTa-v3-large fine-tune (435M, mean pool + LLRD 0.95, fp32) | 0.568894 | **Dropped, never submitted.** Round-QWK 0.5511 vs SPECTER2 0.6297 / SciNCL 0.6117. Pearson r 0.848 vs SPECTER2 — diverse but weak signal. Adding to the 60/20/20 anchor at any weight 5-20% **regressed** OOF round-QWK from 0.6074 to 0.5978. See L11 in lessons_learned.md. |
 | not submitted | `outputs/openalex_anchor/` | OpenAlex non-text anchor (Huber over DOI+title-search citation features + venue/year/author target encoding, 5x3) | 0.364627 | **Dropped, never submitted.** Round-QWK 0.2570 (signal too weak) but Pearson r only 0.499 vs SPECTER2 (most diverse candidate ever). Best blend `ridge -0.05 +openalex 0.05` lifts round-QWK by +0.0008 — within noise band. Citation features track impact, not ASP relevance. See L12 in lessons_learned.md. |
 
@@ -722,3 +723,71 @@ Top priority: try `single_knob` next — it has nearly identical OOF to
 keeps ridge at the public-validated 0.20 (per L10). If it scores
 ≥ 0.72374 we have two confirmation points; if below we know the 0.40
 ridge knob doesn't transfer here either.
+
+
+## After 0.72394 — E5-large-v2 4-anchor stack (NEW BEST, marginal lift; same-family ceiling reached)
+
+A 4-anchor weighted blend `e5 0.50 / scincl 0.30 / specter 0.20 /
+ridge 0.00` with distribution-constrained threshold tuner pushed Public
+LB from `0.72374` to **`0.72394`**, a **`+0.00020`** improvement (the
+smallest positive lift in the project). Recipe in
+`outputs/step13_e5_stack/safest_e5/`.
+
+E5 is the strongest single anchor in the project (OOF 0.6417 single-fold
+QWK; SPECTER2 0.6297; BGE 0.6228; SciNCL 0.6117) but Pearson r = **0.944
+vs BGE** put it in the L7 redundancy zone (r > 0.93 = same signal).
+That predicted only marginal stacking gain — confirmed.
+
+**Why we kept E5 and dropped BGE rather than running both:**
+
+| Stack shape | OOF round-QWK | Δ vs anchor |
+| --- | ---: | ---: |
+| 4-anchor BGE safest (anchor) | 0.6351 | (baseline) |
+| 5-anchor (e5 + bge + scincl + specter + ridge), best mix | 0.6364 | +0.0013 |
+| **4-anchor E5 swap (e5 replaces bge)**, best mix | **0.6477** | **+0.0126** |
+
+A 5-anchor stack with both contrastive-sentence encoders is dominated
+by the 4-anchor stack with the stronger one. Same lesson as L7's
+"3 SPECTER2 anchors at r=0.98 = one signal", just at the redundancy
+boundary instead of the centre.
+
+**Sweep result (E5 4-anchor, ridge ≤ 0.10, 26 candidates):**
+
+| Pick | weights (e5/scincl/specter/ridge) | OOF QWK | Test L1 | Public LB |
+| --- | --- | ---: | ---: | ---: |
+| BGE safest (prev best, reference) | bge .40 / scincl .40 / specter .15 / ridge .05 | 0.6567 | 0.156 | 0.72374 |
+| **safest_e5** ⭐ | 0.50 / 0.30 / 0.20 / **0.00** | **0.6593** | **0.142** | **0.72394** |
+| high_oof_e5 (not submitted) | 0.50 / 0.25 / 0.20 / 0.05 | 0.6615 | 0.149 | not submitted |
+| swap_bge_e5 (not submitted) | 0.40 / 0.40 / 0.15 / 0.05 | 0.6577 | 0.162 | not submitted |
+
+Picked by L7/L9 (test L1 first): `safest_e5` had test_L1 0.142, the
+lowest in any sweep we've ever run. Ridge=0.00 was unusual — every
+prior public-best had ridge > 0 — but the L1 floor justified trusting
+the rank.
+
+**OOF→public ratio is widening:**
+
+| Submission | OOF lift | Public lift | Ratio |
+| --- | ---: | ---: | ---: |
+| BGE 4-anchor safest (vs 0.72103 anchor) | +0.0155 | +0.0027 | 6× |
+| **E5 4-anchor safest_e5 (vs BGE safest)** | +0.0026 | +0.0002 | **13×** |
+
+We are at the test ceiling for the contrastive-sentence-similarity
+family. Each additional +0.001 OOF inside this family buys roughly
++0.0001 public LB. **Adding more BERT-large encoders trained with
+contrastive sentence similarity will not lift further.**
+
+### Where to go next
+
+| Idea | Why | Expected lift | Cost |
+| --- | --- | --- | --- |
+| **Qwen2.5-7B / Llama-3.1-8B LoRA fine-tune** | generative regression — fundamentally different geometry from CLS-mean encoders; expected r vs E5 in 0.6-0.8 band | +0.005 → +0.020 | 3-4h A100 |
+| Cross-encoder fine-tune (e.g., `cross-encoder/ms-marco-MiniLM`) | ranks (paper, ASP-relevance) jointly instead of embedding the paper | +0.003 → +0.010 | ~30 min |
+| Pseudo-labeling round | re-train E5 on confident test predictions; risk per L4 (data drift) | ±0.005 | ~1.5h |
+| ~~bge-m3 / gte-large / nomic-embed / mxbai-embed-large~~ | ~~more contrastive-sentence encoders~~ | ~~~+0.000~~ | ~~don't bother (L15)~~ |
+
+Top priority is **LLM LoRA**. Three text encoders in the same family
+(SPECTER2 + SciNCL + E5 + BGE) confirm that this signal source has
+reached its ceiling on this dataset. Only a structurally different
+modeling approach (generative regression, cross-encoder, pseudo-labels)
+can push further.

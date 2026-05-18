@@ -1,0 +1,140 @@
+{
+  "method": "e5_large_finetune",
+  "model": "intfloat/e5-large-v2",
+  "folds": 5,
+  "seeds": [
+    252,
+    253,
+    254
+  ],
+  "epochs": 5,
+  "max_len": 256,
+  "batch_train": 8,
+  "grad_accum_steps": 2,
+  "lr_encoder": 1.5e-05,
+  "lr_head": 0.001,
+  "pooling": "mean",
+  "amp_dtype": "bf16",
+  "oof_qwk": 0.649614778695444,
+  "oof_mae": 0.7818765036086608,
+  "oof_macro_f1": 0.4172080972968377,
+  "thresholds": [
+    1.8579403315165135,
+    2.547856660424813,
+    3.2984147400954233,
+    4.19693693840192
+  ],
+  "label_distribution_combined": {
+    "1": 241,
+    "2": 139,
+    "3": 94,
+    "4": 68,
+    "5": 54
+  },
+  "label_distribution_public": {
+    "1": 113,
+    "2": 70,
+    "3": 50,
+    "4": 37,
+    "5": 28
+  },
+  "label_distribution_private": {
+    "1": 128,
+    "2": 69,
+    "3": 44,
+    "4": 31,
+    "5": 26
+  },
+  "fold_log": [
+    {
+      "seed": 252,
+      "fold": 1,
+      "best_round_qwk": 0.6299226224320784,
+      "minutes": 1.79
+    },
+    {
+      "seed": 252,
+      "fold": 2,
+      "best_round_qwk": 0.6257939298077722,
+      "minutes": 1.54
+    },
+    {
+      "seed": 252,
+      "fold": 3,
+      "best_round_qwk": 0.6093534008519762,
+      "minutes": 1.56
+    },
+    {
+      "seed": 252,
+      "fold": 4,
+      "best_round_qwk": 0.6476472222129264,
+      "minutes": 1.5
+    },
+    {
+      "seed": 252,
+      "fold": 5,
+      "best_round_qwk": 0.6385813355023735,
+      "minutes": 1.54
+    },
+    {
+      "seed": 253,
+      "fold": 1,
+      "best_round_qwk": 0.6720690705130089,
+      "minutes": 1.54
+    },
+    {
+      "seed": 253,
+      "fold": 2,
+      "best_round_qwk": 0.603968253968254,
+      "minutes": 1.54
+    },
+    {
+      "seed": 253,
+      "fold": 3,
+      "best_round_qwk": 0.5997312059101718,
+      "minutes": 1.55
+    },
+    {
+      "seed": 253,
+      "fold": 4,
+      "best_round_qwk": 0.5835977791254718,
+      "minutes": 1.57
+    },
+    {
+      "seed": 253,
+      "fold": 5,
+      "best_round_qwk": 0.6225961538461539,
+      "minutes": 1.55
+    },
+    {
+      "seed": 254,
+      "fold": 1,
+      "best_round_qwk": 0.6527301927194862,
+      "minutes": 1.54
+    },
+    {
+      "seed": 254,
+      "fold": 2,
+      "best_round_qwk": 0.646858826422409,
+      "minutes": 1.61
+    },
+    {
+      "seed": 254,
+      "fold": 3,
+      "best_round_qwk": 0.6229813397637893,
+      "minutes": 1.61
+    },
+    {
+      "seed": 254,
+      "fold": 4,
+      "best_round_qwk": 0.6280322173958524,
+      "minutes": 1.59
+    },
+    {
+      "seed": 254,
+      "fold": 5,
+      "best_round_qwk": 0.6027476439200097,
+      "minutes": 1.56
+    }
+  ]
+}

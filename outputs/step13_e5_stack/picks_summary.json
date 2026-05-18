@@ -1,0 +1,98 @@
+[
+  {
+    "label": "safest_e5",
+    "weights": [
+      0.5,
+      0.3,
+      0.2,
+      0.0
+    ],
+    "oof_qwk": 0.6592849557593436,
+    "test_l1": 0.1421963046882989,
+    "thresholds": [
+      1.8765772387394652,
+      2.4918595182049597,
+      3.2636230885199775,
+      4.1400852774599946
+    ],
+    "pub_dist": {
+      "1": 123,
+      "2": 59,
+      "3": 59,
+      "4": 36,
+      "5": 21
+    },
+    "pri_dist": {
+      "1": 132,
+      "2": 67,
+      "3": 45,
+      "4": 32,
+      "5": 22
+    },
+    "submission": "C:\\Users\\LG\\Desktop\\Study Material\\DataMining\\Assignment\\outputs\\submissions\\next_e5_4anchor_safest_e5_submission.csv"
+  },
+  {
+    "label": "high_oof_e5",
+    "weights": [
+      0.5,
+      0.25,
+      0.2,
+      0.05
+    ],
+    "oof_qwk": 0.6615477574223022,
+    "test_l1": 0.14890771408427206,
+    "thresholds": [
+      1.8909934642186241,
+      2.496650054881779,
+      3.2456101989949158,
+      4.100796672496462
+    ],
+    "pub_dist": {
+      "1": 122,
+      "2": 61,
+      "3": 57,
+      "4": 36,
+      "5": 22
+    },
+    "pri_dist": {
+      "1": 131,
+      "2": 69,
+      "3": 43,
+      "4": 33,
+      "5": 22
+    },
+    "submission": "C:\\Users\\LG\\Desktop\\Study Material\\DataMining\\Assignment\\outputs\\submissions\\next_e5_4anchor_high_oof_e5_submission.csv"
+  },
+  {
+    "label": "swap_bge_e5",
+    "weights": [
+      0.4,
+      0.4,
+      0.15,
+      0.05
+    ],
+    "oof_qwk": 0.657685515738639,
+    "test_l1": 0.1623305328762184,
+    "thresholds": [
+      1.9202365590623647,
+      2.5269414617690305,
+      3.239512687246015,
+      4.090025913188763
+    ],
+    "pub_dist": {
+      "1": 125,
+      "2": 58,
+      "3": 60,
+      "4": 35,
+      "5": 20
+    },
+    "pri_dist": {
+      "1": 139,
+      "2": 65,
+      "3": 41,
+      "4": 32,
+      "5": 21
+    },
+    "submission": "C:\\Users\\LG\\Desktop\\Study Material\\DataMining\\Assignment\\outputs\\submissions\\next_e5_4anchor_swap_bge_e5_submission.csv"
+  }
+]

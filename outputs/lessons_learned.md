@@ -1,6 +1,75 @@
 # Lessons learned — for the next agent / future-me
 
 Living document. Each entry records a concrete observation we paid for in
+## L15 — Same-family encoders are not additive; pick the best one and replace, do not stack
+
+**Evidence (2026-05-18):** fine-tuned `intfloat/e5-large-v2` (335M, BERT-large arch, mean pool, bf16) using the exact same recipe as step 9 BGE plus the mandatory `"passage: "` prefix. E5 produced the **strongest single anchor** in the project (OOF round-QWK 0.6417 vs BGE 0.6228, SPECTER2 0.6297, SciNCL 0.6117) yet only added **+0.00020 public LB** (0.72374 → 0.72394).
+
+**Floor checks (per L12):**
+
+| Floor | Required | E5 | Pass? |
+| --- | --- | --- | --- |
+| Signal floor (OOF round-QWK ≥ 0.51) | yes | 0.6417 | ✓ (best single anchor) |
+| Diversity floor (r vs strongest existing < 0.95) | yes | **0.944 vs BGE** | ✗ borderline — L7 redundancy zone |
+
+The Pearson matrix told us before submitting:
+
+| | e5 | bge | specter | scincl | ridge |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| e5 | 1.000 | **0.944** | 0.916 | 0.909 | 0.832 |
+| bge | 0.944 | 1.000 | 0.909 | 0.911 | 0.818 |
+
+**Crucial insight: 5-anchor stacks (E5 + BGE + scincl + specter + ridge) underperformed 4-anchor stacks where E5 replaced BGE.** Best 5-anchor blend (e5 .35 / bge .25 / scincl .25 / specter .10 / ridge .05) had OOF round-QWK 0.6364. Best 4-anchor swap (e5 .40 / scincl .40 / specter .15 / ridge .05) had OOF round-QWK 0.6444. Adding E5 *next to* BGE wasted weight; replacing BGE with E5 captured the marginal signal gain.
+
+This is the **same-family redundancy** pattern from L7 (3 SPECTER2 anchors at r=0.98 = one signal), but at the boundary (r=0.944). The rule still applies: **two encoders with r > ~0.93 should not both be in the stack**. Pick the stronger one and let it have the budget.
+
+**Tuning timeline (every choice was forced by floor / probe rules):**
+
+| Step | Anchor | OOF (single) | Test L1 (best blend) | Public LB | Verdict |
+| --- | --- | ---: | ---: | ---: | --- |
+| 9 (BGE) | 0.6228 | 0.156 | 0.72374 | adopted (replace SciNCL primary) |
+| 12 (E5) | 0.6417 | 0.142 | 0.72394 | adopted (replace BGE) |
+
+**Sweep result (E5 4-anchor, ridge ≤ 0.10, 26 candidates):**
+
+| Pick | weights (e5/scincl/specter/ridge) | OOF QWK | Test L1 | Public LB |
+| --- | --- | ---: | ---: | ---: |
+| BGE safest (prev best) | n/a | 0.6567 | 0.156 | 0.72374 |
+| **E5 safest_e5** | 0.50 / 0.30 / 0.20 / 0.00 | **0.6593** | **0.142** | **0.72394** ⭐ |
+| high_oof_e5 (not submitted) | 0.50 / 0.25 / 0.20 / 0.05 | 0.6615 | 0.149 | (predicted ~0.722-0.725) |
+| swap_bge_e5 (not submitted) | 0.40 / 0.40 / 0.15 / 0.05 | 0.6577 | 0.162 | (sibling of BGE safest) |
+
+The picked candidate has **ridge=0.00**. This is unusual — every prior public-best had ridge > 0 — but its test_L1 of 0.1422 was the lowest in any sweep we've ever run. Trusting L7/L9 (rank by test L1 first) was the right call: public lift was small but positive, not a regression.
+
+**OOF→public ratio update:**
+
+| Submission | OOF lift | Public lift | Ratio |
+| --- | ---: | ---: | ---: |
+| BGE 4-anchor safest (vs 0.72103 anchor) | +0.0155 | +0.0027 | 6× |
+| **E5 4-anchor safest_e5 (vs BGE safest)** | +0.0026 | +0.0002 | **13×** |
+
+The discount is widening as we approach the test ceiling. We are now in the regime where each +0.001 OOF buys ~+0.0001 public. **Anchor sweeps inside the contrastive-sentence-similarity family have effectively run out.**
+
+**Rule of thumb (refines L7 + L13).**
+
+- For two encoders with **r ∈ [0.93, 0.96]**, stacking both is wasteful. Replace the weaker (lower individual OOF) and let the stronger get the BGE/E5 budget.
+- For r < 0.92, both can stack with a meaningful split (e.g., SciNCL r=0.911 vs E5 still got a 0.30 weight in safest_e5).
+- **Diversity ceiling for the contrastive-sentence-similarity family is reached.** Any additional model in this family (`bge-m3`, `gte-large`, `nomic-embed`, `mxbai-embed-large`) will likely have r > 0.93 with E5 and not lift. This is now an experimental rule, not a prediction — confirmed by both BGE→E5 (small lift) and E5→???-future-encoder (predicted small).
+- **Next anchor must come from outside the contrastive-sentence family** to break the ceiling. Options:
+  - LLM fine-tune (Qwen/Llama LoRA) — generative regression, totally different geometry from CLS-mean encoders.
+  - Cross-encoder fine-tune (e.g., `cross-encoder/ms-marco-MiniLM`) — ranks pair (paper, ASP-relevance prompt) jointly.
+  - Pseudo-labeled retraining of E5 on confident test predictions (creates a different OOF distribution per L4 risk).
+
+**Action items.**
+- [x] Promote `next_e5_4anchor_safest_e5_submission.csv` (0.72394) as the new public anchor.
+- [x] Document E5+BGE redundancy so the next experimenter doesn't try a 5-anchor stack again.
+- [ ] **Do NOT fine-tune another contrastive-sentence-similarity encoder** (BGE-m3, GTE, Nomic, mxbai) — predicted r > 0.93 vs E5 = same-family ceiling. Would burn ~45 min GPU for ±0 public.
+- [ ] Pivot to Qwen2.5-7B / Llama-3.1-8B LoRA (the original phase 2 plan) — generative regression has fundamentally different signal geometry; expected r vs encoders 0.6-0.8.
+- [ ] If LoRA also caps, consider pseudo-labeling: take confident E5 test predictions (round_score < 1.2 or > 4.8) → label cardinality, retrain E5 on the 2,494 + ~150 augmented set. L4 risk applies.
+
+---
+
+
 ## L14 — Public-validated weight rules are stack-configuration-specific, not universal
 
 **Evidence (2026-05-18):** the `single_knob` follow-up to BGE 4-anchor `safest` (0.72374) regressed to **0.70965** on Public LB, a `−0.01409` drop.
