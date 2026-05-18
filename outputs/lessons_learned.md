@@ -1,6 +1,45 @@
 # Lessons learned — for the next agent / future-me
 
 Living document. Each entry records a concrete observation we paid for in
+## L14 — Public-validated weight rules are stack-configuration-specific, not universal
+
+**Evidence (2026-05-18):** the `single_knob` follow-up to BGE 4-anchor `safest` (0.72374) regressed to **0.70965** on Public LB, a `−0.01409` drop.
+
+| Submission | bge | scincl | specter | ridge | OOF | test_L1 | Public |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| `safest` (current best) | 0.40 | 0.40 | 0.15 | 0.05 | 0.6567 | 0.156 | **0.72374** |
+| `single_knob` | 0.30 | 0.40 | 0.10 | 0.20 | 0.6572 | 0.158 | 0.70965 |
+| Δ | −0.10 | 0 | −0.05 | **+0.15** | +0.0005 | +0.002 | **−0.0141** |
+
+OOF and test_L1 both said "near-identical to safest". Public said otherwise. The dominant change vs safest is the **ridge weight 0.05 → 0.20**, a +0.15 jump that L10 had labelled as "public-safe" — but only in the *3-anchor* stack era.
+
+**Why ridge=0.20 was safe for SciNCL/SPECTER/Ridge but not for BGE/SciNCL/SPECTER/Ridge:**
+- In the 3-anchor stack, ridge was the *only* lexical signal; cutting it from 0.20 → 0.10 (the `0.71622` regression L10 documented) removed lexical coverage entirely.
+- BGE-large brings BERT-large generic-text representations. Pearson r BGE vs Ridge = 0.818 — significantly more correlated than Ridge vs SPECTER2 (0.811). BGE partially **subsumes** ridge's role as the "lexical/surface-form" signal.
+- With BGE present, ridge=0.20 becomes double-counting of lexical features, while ridge=0.05 lets BGE provide most of the lexical signal and ridge just calibrates edge cases.
+
+This is structurally similar to the L7 finding (3 SPECTER2 anchors at r=0.98 are one signal). **Adding a new anchor with high correlation to an existing one redistributes which weights are safe.** The old rules don't carry over.
+
+**Rule of thumb (refines L10 with a hard caveat).**
+- L10's "single-knob sweeps near a public-validated point" assumed *the same anchor set*. When the anchor set changes (we added BGE for `safest`), the public-validated weight constraints from the previous configuration **do not transfer**.
+- Treat the first public-confirmed weight tuple of a new stack-configuration as the **only** public-validated point, until further submissions test neighbours.
+- For follow-up submissions, prefer single-knob neighbours of the **most recent public winner**, not of an earlier-era winner. After `safest` (40/40/15/05), valid single-knob neighbours are 35/40/15/10, 45/40/10/05, 40/45/10/05, etc. — *not* 30/40/10/20 (3 knobs moved at once).
+
+**Action items.**
+- [x] Mark `single_knob` as a regression in `leaderboard_tracking.md` so the next experimenter doesn't repeat the move.
+- [ ] **Do NOT submit `high_signal` (25/25/25/25)** — its ridge weight is 0.25, even higher than the failed single_knob. Predicted public ~0.69-0.71. Save the daily slot.
+- [ ] Re-sweep around `safest` with the constraint **ridge ≤ 0.10**. Prefer test_L1 ≤ 0.16. New candidates worth probing:
+  - 40/40/10/10 (single-knob: ridge ↑0.05, specter ↓0.05)
+  - 40/45/10/05 (single-knob: scincl ↑0.05, specter ↓0.05)
+  - 45/40/10/05 (single-knob: bge ↑0.05, specter ↓0.05)
+  - 35/45/15/05 (single-knob: bge ↓0.05, scincl ↑0.05)
+  - 40/40/20/00 (test ridge=0 — see if ridge contributes anything when bge is high)
+  - 40/30/25/05 (already in candidates.csv at OOF 0.6576, test_L1 0.162 — borderline test_L1)
+- [ ] After confirming/refuting one of these, only then expand to e5-large-v2 / Qwen LoRA.
+
+---
+
+
 ## L13 — BGE-large-en-v1.5 cleared the L11/L12 floors and lifted the stack; OOF→public discount was 6×
 
 **Evidence (2026-05-18):** fine-tuned `BAAI/bge-large-en-v1.5` (335M, BERT-large arch, mean pool, bf16) on `title + abstract`, 5 folds × 3 seeds = 15 models. First text encoder since SciNCL (May 14) to lift the stack.
