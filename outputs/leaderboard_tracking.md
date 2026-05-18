@@ -37,6 +37,7 @@ should not be treated as the final objective.
 | **0.72103** | `outputs/0.72103/blend_3anchor_scincl_specter_ridge_60_20_20_submission.csv` | **Stacking step 6 — `0.6 * scincl + 0.2 * specter_3s + 0.2 * ridge_5x5`, distribution-constrained thresholds** | **0.641159** | **NEW BEST — first submission past 0.72. +0.011 over 0.71052. SciNCL added genuine signal despite Pearson 0.943 correlation with SPECTER2 and slightly lower OOF (0.6269). Both heuristics (OOF QWK and test L1) said "do not submit"; submitted anyway as a hedge with the lowest-test-L1 SciNCL candidate. See L9 in lessons_learned.md.** |
 | 0.71622 | `outputs/0.71622/blend_3anchor_scincl_specter_ridge_70_20_10_submission.csv` | Sweep around 60/20/20 — 70% scincl + 20% specter + 10% ridge | 0.639286 | Regression vs 0.72103 (−0.005). Lower test L1 (0.158) and slightly lower OOF (-0.002) both said "might transfer", but reducing Ridge from 20% to 10% hurt. See L10 in lessons_learned.md. |
 | not submitted | `outputs/deberta_v3_finetune_outputs/deberta_v3_finetune/` | DeBERTa-v3-large fine-tune (435M, mean pool + LLRD 0.95, fp32) | 0.568894 | **Dropped, never submitted.** Round-QWK 0.5511 vs SPECTER2 0.6297 / SciNCL 0.6117. Pearson r 0.848 vs SPECTER2 — diverse but weak signal. Adding to the 60/20/20 anchor at any weight 5-20% **regressed** OOF round-QWK from 0.6074 to 0.5978. See L11 in lessons_learned.md. |
+| not submitted | `outputs/openalex_anchor/` | OpenAlex non-text anchor (Huber over DOI+title-search citation features + venue/year/author target encoding, 5x3) | 0.364627 | **Dropped, never submitted.** Round-QWK 0.2570 (signal too weak) but Pearson r only 0.499 vs SPECTER2 (most diverse candidate ever). Best blend `ridge -0.05 +openalex 0.05` lifts round-QWK by +0.0008 — within noise band. Citation features track impact, not ASP relevance. See L12 in lessons_learned.md. |
 
 
 ## Current Takeaways
@@ -602,12 +603,69 @@ above):
 
 | Idea | Why | Status |
 | --- | --- | --- |
-| ~~DeBERTa-v3-large~~ | ~~more diverse signal~~ | **Dropped (L11)** |
-| `bge-large-en-v1.5` or `e5-large-v2` | also generic-large, but pre-trained with **contrastive sentence similarity** — closer to SPECTER2's objective, signal more likely to transfer | not yet tried |
-| OpenAlex citation OOF as continuous anchor | non-text signal; uncorrelated with all text encoders by construction | not yet tried |
+| ~~DeBERTa-v3-large~~ | ~~more diverse signal~~ | **Dropped (L11)** — generic CC pretraining mismatched scientific text |
+| ~~OpenAlex citation OOF as continuous anchor~~ | ~~non-text signal; uncorrelated with all text encoders~~ | **Dropped (L12)** — most diverse candidate ever (r 0.499) but signal too weak (OOF 0.257); citations track impact, not ASP relevance |
+| `bge-large-en-v1.5` or `e5-large-v2` | also generic-large, but pre-trained with **contrastive sentence similarity** — closer to SPECTER2's objective, signal more likely to transfer | **next** (step 9) |
 | Venue / first-author target encoding | non-text signal; cheap | not yet tried |
+| Qwen2.5-7B / Llama-3.1-8B LoRA fine-tune | LLM zero-shot lacked signal (L8); fine-tune may work where DeBERTa-v3 didn't because reasoning span differs from CLS pooling | bigger bet (3-4h GPU) |
 
 Practical rule added to L11: **before committing to a full 15-fold run on
 a new anchor, run a quick "+10% blend probe" on its OOF.** If the round-QWK
 of `(60/20/20 anchor) + 0.10 * candidate` is below the anchor's
 round-QWK, abort the run.
+
+
+## After OpenAlex anchor — Drop, signal-floor failure (L12)
+
+A 5×3 OpenAlex continuous anchor was built (`src/build_openalex_anchor.py`,
+`outputs/openalex_anchor/`) using Huber regression over OpenAlex DOI +
+title-search citation features (cited_by_count, FWCI, citation velocity,
+venue/year percentiles), citation-age, and OOF target encodings on
+venue/year/first-surname. It was **not submitted**. Full evidence in
+`outputs/lessons_learned.md` (L12).
+
+Why it died:
+
+- OOF round-QWK **0.2570** (constrained-tuned 0.3646). This is below
+  every other anchor and well under the L8 signal floor (~0.51).
+- Pearson r vs SPECTER2 = **0.499**, vs SciNCL = 0.505. The most
+  diverse candidate ever attempted — yet it still failed.
+- Blend probe found exactly one cell with a positive lift, and only
+  by +0.0008 (noise band):
+
+  | Mix | OOF round-QWK | Δ vs anchor 0.6074 |
+  | --- | ---: | ---: |
+  | 60/20/20 anchor | **0.6074** | (baseline) |
+  | `ridge -0.05, +openalex 0.05` | 0.6082 | +0.0008 (noise) |
+  | ridge -0.10, +openalex 0.10 | 0.6033 | -0.004 |
+  | scincl/specter -0.025, +openalex 0.05 | 0.5964 | -0.011 |
+  | any weight ≥ 0.10 from any anchor | 0.55-0.60 | clear regression |
+
+Root cause: the label is "ASP/AI-symbolic relevance of an abstract"
+(L5), not "paper quality". Citation count and FWCI track impact, not
+topic relevance. Heavily-cited proceedings volumes are label 1; niche
+label-5 ASP solver papers have near-zero citations. Same trap as the
+all-source scholarly dump (L3).
+
+Cross-cutting pattern (4 candidates, same failure mode):
+
+| Candidate | Type | OOF | r vs SPECTER2 | Failure mode |
+| --- | --- | ---: | ---: | --- |
+| LLM v2 zero-shot | text, generic LLM | 0.375 | 0.558 | low signal |
+| SciBERT fine-tune | text, scientific BERT | 0.617 | 0.948 | redundant |
+| DeBERTa-v3-large | text, generic large | 0.551 | 0.848 | low signal × medium diversity |
+| **OpenAlex anchor** | **non-text** | **0.257** | **0.499** | **low signal even with high diversity** |
+
+L12 codifies this as the "signal floor + diversity floor" rule: a
+candidate must clear *both* (OOF ≥ ~0.51 AND r vs SPECTER2 < ~0.95).
+OpenAlex passed diversity by a wide margin but failed signal floor by
+half. Diversity alone is insufficient.
+
+Updated direction (replacing the row in the bge/openalex table above):
+
+| Idea | Why | Status |
+| --- | --- | --- |
+| `bge-large-en-v1.5` or `e5-large-v2` | contrastive sentence similarity (closer to SPECTER2's objective than DeBERTa-v3 RTD) | **next** (step 9) |
+| Re-purpose OpenAlex features as **inputs** to the Ridge anchor | the original 0.63064 OpenAlex Huber meta worked publicly *as a meta-blend*, not as a standalone anchor — feed citation features into Ridge instead of stacking | not yet tried |
+| Venue / first-author target encoding (already inside OpenAlex anchor) | re-test by feeding into Ridge alone | not yet tried |
+| Qwen2.5-7B LoRA fine-tune | LLM zero-shot lacked signal (L8); fine-tune may differ in reasoning span | bigger bet (3-4h GPU) |

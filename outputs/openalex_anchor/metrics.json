@@ -1,0 +1,42 @@
+{
+  "method": "openalex_anchor",
+  "model": "HuberRegressor over OpenAlex DOI+title features + venue/year/author target encoding",
+  "folds": 5,
+  "seeds": [
+    252,
+    253,
+    254
+  ],
+  "n_models": 15,
+  "oof_qwk_constrained": 0.3645799696225752,
+  "oof_qwk_round": 0.2569970464728457,
+  "oof_mae": 1.140336808340016,
+  "oof_macro_f1": 0.287196805574724,
+  "thresholds": [
+    2.0929832276960076,
+    2.4628942324027903,
+    2.7825515834223777,
+    3.1048826488905323
+  ],
+  "label_distribution_combined": {
+    "1": 273,
+    "2": 145,
+    "3": 82,
+    "4": 53,
+    "5": 43
+  },
+  "label_distribution_public": {
+    "1": 136,
+    "2": 69,
+    "3": 39,
+    "4": 32,
+    "5": 22
+  },
+  "label_distribution_private": {
+    "1": 137,
+    "2": 76,
+    "3": 43,
+    "4": 21,
+    "5": 21
+  }
+}

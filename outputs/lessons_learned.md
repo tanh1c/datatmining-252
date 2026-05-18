@@ -1,6 +1,59 @@
 # Lessons learned — for the next agent / future-me
 
 Living document. Each entry records a concrete observation we paid for in
+## L12 — Non-text anchors also fail the signal-floor rule; diversity is necessary but not sufficient
+
+**Evidence (2026-05-18):** built an OpenAlex continuous OOF anchor (Huber regressor over DOI + title-search citation features + venue/year/author target encoding, 5 folds × 3 seeds = 15 models). Despite being the **most diverse** candidate ever tried, it failed the blend probe.
+
+| Anchor | OOF round-QWK | Pearson r vs SPECTER2 | Pearson r vs SciNCL |
+| --- | ---: | ---: | ---: |
+| SPECTER2 | 0.6297 | 1.000 | 0.943 |
+| SciNCL | 0.6117 | 0.943 | 1.000 |
+| Ridge 5×5 | 0.4353 | 0.811 | 0.817 |
+| **OpenAlex anchor** | **0.2570** | **0.499** | **0.505** |
+
+`r ≈ 0.5` is by far the lowest correlation in the project (vs DeBERTa-v3 0.848, SciBERT 0.948, LLM v2 0.558). **Diversity alone is not enough:**
+
+| Mix | round-QWK | Δ vs anchor 0.6074 |
+| --- | ---: | ---: |
+| 60/20/20 anchor (no openalex) | **0.6074** | (baseline) |
+| `ridge −0.05, +openalex 0.05` | 0.6082 | **+0.0008** ← noise band |
+| ridge −0.10, +openalex 0.10 | 0.6033 | −0.004 |
+| scincl/specter −0.025, +openalex 0.05 | 0.5964 | −0.011 |
+| any weight ≥ 0.10 from any anchor | 0.55-0.60 | clear regression |
+
+The single +0.0008 cell is below seed-to-seed variance. No usable lift exists.
+
+**Cross-cutting pattern (now confirmed across 4 distinct candidate types):**
+
+| Candidate | Type | OOF round-QWK | r vs SPECTER2 | Verdict | Lesson |
+| --- | --- | ---: | ---: | --- | --- |
+| LLM v2 zero-shot | text, generic LLM | 0.3752 | 0.558 | drop | L8 |
+| SciBERT fine-tune | text, scientific BERT | 0.6165 | **0.948** | drop (redundant) | L7 |
+| DeBERTa-v3-large fine-tune | text, generic large | 0.5511 | 0.848 | drop | L11 |
+| **OpenAlex anchor** | **non-text, citation/venue** | **0.2570** | **0.499** | **drop** | **L12** |
+
+Every one fails the blend probe. The reason is the same in all four: **signal_strength × diversity** must clear *both* thresholds, not just one.
+
+**Refined rule of thumb (supersedes the loose version in L8).**
+
+For a candidate to lift the stack, it must satisfy *both*:
+1. **Signal floor:** OOF round-QWK ≥ ~80% of the strongest current anchor's OOF (currently ~0.51 on this dataset). Below that, the candidate carries more noise than signal.
+2. **Diversity floor:** Pearson r vs the strongest anchor < ~0.95 (above that, the candidate is essentially the same signal — see L7).
+
+OpenAlex passed (2) by a wide margin (r 0.50 << 0.95) but failed (1) catastrophically (0.26 vs 0.51). DeBERTa-v3 / SciBERT / LLM each failed at least one floor. The anchors that *did* lift the stack — Ridge 5×5 (0.4353 OOF, r 0.811) and SciNCL (0.6117 OOF, r 0.943) — barely cleared one floor but had a clear margin on the other.
+
+**Why the OpenAlex signal is so weak on this dataset.** The label is "ASP/AI-symbolic relevance of an abstract" (L5), not "paper quality". Citation count and FWCI track impact, not topic relevance. A heavily-cited proceedings volume is label 1; a niche label-5 ASP solver paper has near-zero citations. This is the same trap that L3 flagged for the all-source scholarly dump.
+
+**Action items.**
+- [x] Drop OpenAlex anchor for stacking. Keep `outputs/openalex_anchor/` as a negative reference and a known-low-correlation source for future combo experiments.
+- [ ] Codify the **+10% blend probe** as a mandatory preflight before committing to any new anchor's full 15-fold training run. Run it on whatever cheap proxy OOF is available first (e.g., a 1-seed × 5-fold version), and abort if the round-QWK does not match or beat the current 60/20/20 anchor at *any* probed weight.
+- [ ] When experimenting with non-text features, do **not** treat them as a separate anchor. Instead, blend them *into* the Ridge anchor's feature set (the way the original 0.63064 OpenAlex Huber meta did with `ridge_score` as a feature). The meta-blend approach worked publicly; the standalone anchor approach does not.
+- [ ] Next encoder candidate worth trying: **`bge-large-en-v1.5`** or **`e5-large-v2`** — generic large encoders pre-trained with **contrastive sentence similarity** (closer to SPECTER2's objective than DeBERTa-v3's RTD). Predicted: clear signal floor (≥ 0.55 OOF), correlation 0.85-0.92.
+
+---
+
+
 ## L11 — Generic large encoders (DeBERTa-v3) under-fit scientific-paper datasets, regardless of tuning
 
 **Evidence (2026-05-18):** fine-tuned `microsoft/deberta-v3-large` (435M params) on the same `title + abstract` input, 5 folds × 3 seeds. After applying every standard DeBERTa-v3 fine-tune trick the literature recommends, OOF QWK plateaued at **0.5511** (round) / **0.5689** (constrained-tuned) — well below SPECTER2's 0.6297 and SciNCL's 0.6117 on the same OOF rows.
