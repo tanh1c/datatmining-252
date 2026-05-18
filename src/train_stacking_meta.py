@@ -232,6 +232,14 @@ def main():
     else:
         print("[scincl] no scincl_finetune folder; skipping (run notebooks/step6_scincl_finetune.ipynb to add)")
 
+    # Auto-include DeBERTa-v3 (different architecture) if available
+    deberta_path = ROOT / "outputs" / "deberta_v3_finetune"
+    if (deberta_path / "oof_scores.csv").exists():
+        anchors.append(load_specter_anchor("deberta_v3_finetune", "deberta"))
+        print("[deberta] anchor included")
+    else:
+        print("[deberta] no deberta_v3_finetune folder; skipping (run notebooks/step8_deberta_v3_finetune.ipynb to add)")
+
     # Auto-include LLM zero-shot if available. Prefer v2 (improved prompt)
     # over v1 when both exist.
     llm_v2 = ROOT / "outputs" / "llm_zeroshot_v2"
@@ -411,6 +419,7 @@ def main():
 
     # 9b. SciNCL anchor-only + 2-anchor scincl + ridge blends (if available)
     scincl_idx = next((i for i, a in enumerate(anchors) if a.name == "scincl"), None)
+    deberta_idx = next((i for i, a in enumerate(anchors) if a.name == "deberta"), None)
     if scincl_idx is not None:
         oof = X_train[:, scincl_idx]
         pub_s = X_public[:, scincl_idx]
@@ -464,6 +473,66 @@ def main():
             priv_s = X_private @ w
             evaluate(name, oof, pub_s, priv_s,
                      extra={"scincl": w_scincl, "specter_3s": w_specter, "ridge_5x5": w_ridge})
+
+    # 9c. DeBERTa anchor-only + 4-anchor blends with deberta (if available)
+    if deberta_idx is not None:
+        oof = X_train[:, deberta_idx]
+        pub_s = X_public[:, deberta_idx]
+        priv_s = X_private[:, deberta_idx]
+        evaluate("anchor_deberta_only", oof, pub_s, priv_s, extra=[1.0])
+
+        # 2-anchor: deberta + ridge (mirror the 2-anchor SPECTER + ridge formula)
+        for w_deb in [0.6, 0.7, 0.8]:
+            w = np.zeros(X_train.shape[1])
+            w[deberta_idx] = w_deb
+            w[ridge_idx] = 1 - w_deb
+            oof = X_train @ w
+            pub_s = X_public @ w
+            priv_s = X_private @ w
+            evaluate(f"blend_deberta_ridge_{int(w_deb*100)}_{int((1-w_deb)*100)}",
+                     oof, pub_s, priv_s,
+                     extra={"deberta": w_deb, "ridge_5x5": 1 - w_deb})
+
+        # 3-anchor: deberta + specter_3s + ridge (replace scincl with deberta)
+        for name, w_deb, w_specter, w_ridge in [
+            ("blend_3anchor_deberta_specter_ridge_60_20_20", 0.60, 0.20, 0.20),
+            ("blend_3anchor_deberta_specter_ridge_50_30_20", 0.50, 0.30, 0.20),
+            ("blend_3anchor_deberta_specter_ridge_50_25_25", 0.50, 0.25, 0.25),
+            ("blend_3anchor_deberta_specter_ridge_55_25_20", 0.55, 0.25, 0.20),
+            ("blend_3anchor_deberta_specter_ridge_70_15_15", 0.70, 0.15, 0.15),
+        ]:
+            w = np.zeros(X_train.shape[1])
+            w[deberta_idx] = w_deb
+            w[primary_idx] = w_specter
+            w[ridge_idx] = w_ridge
+            oof = X_train @ w
+            pub_s = X_public @ w
+            priv_s = X_private @ w
+            evaluate(name, oof, pub_s, priv_s,
+                     extra={"deberta": w_deb, "specter_3s": w_specter, "ridge_5x5": w_ridge})
+
+        # 4-anchor: scincl + specter + deberta + ridge (only if scincl also present)
+        if scincl_idx is not None:
+            for name, w_sc, w_sp, w_db, w_r in [
+                ("blend_4anchor_scincl_specter_deberta_ridge_40_20_25_15", 0.40, 0.20, 0.25, 0.15),
+                ("blend_4anchor_scincl_specter_deberta_ridge_45_15_25_15", 0.45, 0.15, 0.25, 0.15),
+                ("blend_4anchor_scincl_specter_deberta_ridge_40_15_30_15", 0.40, 0.15, 0.30, 0.15),
+                ("blend_4anchor_scincl_specter_deberta_ridge_35_20_30_15", 0.35, 0.20, 0.30, 0.15),
+                ("blend_4anchor_scincl_specter_deberta_ridge_40_20_20_20", 0.40, 0.20, 0.20, 0.20),
+                ("blend_4anchor_scincl_specter_deberta_ridge_50_15_20_15", 0.50, 0.15, 0.20, 0.15),
+                ("blend_4anchor_scincl_specter_deberta_ridge_45_15_25_15", 0.45, 0.15, 0.25, 0.15),
+                ("blend_4anchor_scincl_specter_deberta_ridge_30_25_30_15", 0.30, 0.25, 0.30, 0.15),
+            ]:
+                w = np.zeros(X_train.shape[1])
+                w[scincl_idx] = w_sc
+                w[primary_idx] = w_sp
+                w[deberta_idx] = w_db
+                w[ridge_idx] = w_r
+                oof = X_train @ w
+                pub_s = X_public @ w
+                priv_s = X_private @ w
+                evaluate(name, oof, pub_s, priv_s,
+                         extra={"scincl": w_sc, "specter_3s": w_sp, "deberta": w_db, "ridge_5x5": w_r})
 
     # 10. 3-anchor blends (only if scibert is available)
     scibert_idx = next((i for i, a in enumerate(anchors) if a.name == "scibert"), None)
