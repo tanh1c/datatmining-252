@@ -35,6 +35,9 @@ should not be treated as the final objective.
 | 0.68718 | `outputs/0.68718/specter2_finetune_v2_submission.csv` | Step 3c: v3 abstracts (95.7%) + max_len 384 + constrained tuner (lambda=0.5). 5 folds x 3 seeds | 0.644552 | Same regression pattern as 5-seed: OOF +0.006, public -0.012. Three knobs changed at once. See `outputs/lessons_learned.md` (L6). |
 | **0.71052** | `outputs/0.71052/blend_2anchor_70_specter_submission.csv` | Stacking step 5 — `0.7 * specter_3s_oof + 0.3 * ridge_5x5_oof`, distribution-constrained thresholds | 0.646351 | First submission to break 0.70. +0.011 over 0.69972. 2-anchor minimalist blend (1 semantic + 1 lexical) beat 4-anchor stacks. |
 | **0.72103** | `outputs/0.72103/blend_3anchor_scincl_specter_ridge_60_20_20_submission.csv` | **Stacking step 6 — `0.6 * scincl + 0.2 * specter_3s + 0.2 * ridge_5x5`, distribution-constrained thresholds** | **0.641159** | **NEW BEST — first submission past 0.72. +0.011 over 0.71052. SciNCL added genuine signal despite Pearson 0.943 correlation with SPECTER2 and slightly lower OOF (0.6269). Both heuristics (OOF QWK and test L1) said "do not submit"; submitted anyway as a hedge with the lowest-test-L1 SciNCL candidate. See L9 in lessons_learned.md.** |
+| 0.71622 | `outputs/0.71622/blend_3anchor_scincl_specter_ridge_70_20_10_submission.csv` | Sweep around 60/20/20 — 70% scincl + 20% specter + 10% ridge | 0.639286 | Regression vs 0.72103 (−0.005). Lower test L1 (0.158) and slightly lower OOF (-0.002) both said "might transfer", but reducing Ridge from 20% to 10% hurt. See L10 in lessons_learned.md. |
+| not submitted | `outputs/deberta_v3_finetune_outputs/deberta_v3_finetune/` | DeBERTa-v3-large fine-tune (435M, mean pool + LLRD 0.95, fp32) | 0.568894 | **Dropped, never submitted.** Round-QWK 0.5511 vs SPECTER2 0.6297 / SciNCL 0.6117. Pearson r 0.848 vs SPECTER2 — diverse but weak signal. Adding to the 60/20/20 anchor at any weight 5-20% **regressed** OOF round-QWK from 0.6074 to 0.5978. See L11 in lessons_learned.md. |
+
 
 ## Current Takeaways
 
@@ -551,3 +554,60 @@ candidates one at a time; do not over-prune by metric heuristics alone.
 
 Top priority is the weight sweep around 60/20/20 because it costs nothing
 extra and tests a concrete hypothesis.
+
+
+## After DeBERTa-v3-large — Drop step 8, generic encoder under-fits scientific text
+
+A 5×3 fine-tune of `microsoft/deberta-v3-large` was attempted as the 4th
+anchor (step 8 / `notebooks/step8_deberta_v3_finetune.ipynb`). It was
+**not submitted**. Full evidence in `outputs/lessons_learned.md` (L11).
+
+Why it died:
+
+- OOF round-QWK **0.5511** (constrained-tuned 0.5689). Below SPECTER2
+  (0.6297) and SciNCL (0.6117) on the same OOF rows. Above the L8 floor
+  (~0.51) but only marginally.
+- Pearson r vs SPECTER2 = 0.848, vs SciNCL = 0.859. Diversity is real
+  (lower than the 0.943 SPECTER2 / SciNCL share) but the signal is too
+  weak to convert that diversity into stack lift.
+- **Direct blend probe (no threshold tune):** the 60/20/20 anchor scores
+  round-QWK 0.6074. Adding DeBERTa-v3 at any weight from 5% to 20%
+  monotonically regresses to 0.6037 / 0.5997 / 0.5983 / 0.5978. The
+  candidate is dead weight.
+
+Tuning timeline (all standard DeBERTa-v3 fine-tune fixes were applied):
+
+| Variant | best per-fold |
+| --- | ---: |
+| CLS pool, fp16/bf16 autocast | NaN loss (disentangled attention overflow) |
+| CLS pool, fp32, LR_enc 1e-5, 5 epochs | 0.502 |
+| CLS pool, fp32, LR_enc 2e-5, 6 epochs | 0.533 |
+| Mean pool, fp32, LR_enc 2e-5, 6 epochs | 0.570 |
+| Mean pool + LLRD 0.95, 5 epochs | 0.580 |
+
+Root cause: DeBERTa-v3 was pre-trained on CommonCrawl + Wikipedia +
+Books — generic English with no scientific-paper inductive bias.
+SPECTER2 / SciNCL / SciBERT were pre-trained with citation-contrastive
+objectives on scientific abstracts, so they start with a representation
+already aligned with the label axis.
+
+This matches L8 (LLM zero-shot drop) almost exactly: a candidate with
+better diversity but weaker signal than the existing anchors does not
+help. Diversity only matters above an OOF floor of ~80% of the strongest
+anchor's OOF (~0.51 here). DeBERTa-v3 cleared that floor by 0.04 — not
+enough.
+
+Updated direction for the 4th anchor (replacing the row in the table
+above):
+
+| Idea | Why | Status |
+| --- | --- | --- |
+| ~~DeBERTa-v3-large~~ | ~~more diverse signal~~ | **Dropped (L11)** |
+| `bge-large-en-v1.5` or `e5-large-v2` | also generic-large, but pre-trained with **contrastive sentence similarity** — closer to SPECTER2's objective, signal more likely to transfer | not yet tried |
+| OpenAlex citation OOF as continuous anchor | non-text signal; uncorrelated with all text encoders by construction | not yet tried |
+| Venue / first-author target encoding | non-text signal; cheap | not yet tried |
+
+Practical rule added to L11: **before committing to a full 15-fold run on
+a new anchor, run a quick "+10% blend probe" on its OOF.** If the round-QWK
+of `(60/20/20 anchor) + 0.10 * candidate` is below the anchor's
+round-QWK, abort the run.

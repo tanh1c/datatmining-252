@@ -1,6 +1,97 @@
 # Lessons learned — for the next agent / future-me
 
 Living document. Each entry records a concrete observation we paid for in
+## L11 — Generic large encoders (DeBERTa-v3) under-fit scientific-paper datasets, regardless of tuning
+
+**Evidence (2026-05-18):** fine-tuned `microsoft/deberta-v3-large` (435M params) on the same `title + abstract` input, 5 folds × 3 seeds. After applying every standard DeBERTa-v3 fine-tune trick the literature recommends, OOF QWK plateaued at **0.5511** (round) / **0.5689** (constrained-tuned) — well below SPECTER2's 0.6297 and SciNCL's 0.6117 on the same OOF rows.
+
+**Tuning timeline (every fix moved the needle, none rescued the gap):**
+
+| Variant | best per-fold |
+| --- | ---: |
+| CLS pool, fp16/bf16 autocast | NaN loss (disentangled attention overflow) |
+| CLS pool, fp32, LR_enc 1e-5, 5 epochs | 0.502 |
+| CLS pool, fp32, LR_enc 2e-5, 6 epochs | 0.533 |
+| Mean pool, fp32, LR_enc 2e-5, 6 epochs | 0.570 |
+| Mean pool + LLRD 0.95, 5 epochs | **0.580** |
+
+Engineering notes (will save the next person hours):
+- DeBERTa-v3's `model.safetensors` on the Hub is **fp16**. `transformers >= 4.41` honours that, so `AutoModel.from_pretrained` returns an fp16 encoder; a freshly-built fp32 head then crashes with `mat1 and mat2 must have the same dtype`. Pass `torch_dtype=torch.float32` (or `dtype=` on transformers v5).
+- Disentangled attention overflows in fp16 *and* bf16. Use **pure fp32** for both train and eval. The 1.4× slowdown is unavoidable.
+- DeBERTa-v3 was pre-trained with **Replaced Token Detection** (ELECTRA-style), not NSP/contrastive on `[CLS]`. The position-0 token is **not** a sequence summary, so CLS pooling under-performs by ~0.04 QWK vs masked **mean pooling** over all tokens. This is the FB3/ELL community standard.
+- Layer-Wise LR Decay (LLRD ≈ 0.95) on top of mean pooling adds another ~0.01 — the canonical last-mile fix.
+- Head LR `1e-3` (the BERT-base default from step 6) blows up deberta-large to NaN. Use `1e-4`.
+
+**Stacking probe (definitive evidence, not a heuristic):**
+
+| Anchor | OOF round-QWK | Pearson r vs SPECTER2 | Pearson r vs SciNCL |
+| --- | ---: | ---: | ---: |
+| SPECTER2 | 0.6297 | 1.000 | 0.943 |
+| SciNCL | 0.6117 | 0.943 | 1.000 |
+| Ridge 5×5 | 0.4353 | 0.811 | 0.817 |
+| **DeBERTa-v3** | **0.5511** | **0.848** | **0.859** |
+
+Round-QWK of `0.6 * scincl + 0.2 * specter + 0.2 * ridge` (the public-best anchor) **regresses monotonically** when DeBERTa-v3 is added at any weight, before any threshold tuning:
+
+| Mix | OOF round-QWK |
+| --- | ---: |
+| 60/20/20 anchor (no deberta) | **0.6074** |
+| + deberta 5% (taken evenly from scincl/specter) | 0.6037 |
+| + deberta 10% | 0.5997 |
+| + deberta 15% | 0.5983 |
+| + deberta 20% | 0.5978 |
+
+**Why this matches L8 (LLM zero-shot drop) almost exactly:**
+
+| Candidate | OOF | Pearson r vs SPECTER2 | Verdict |
+| --- | ---: | ---: | --- |
+| LLM v2 zero-shot (L8) | 0.3752 | 0.558 | dropped |
+| **DeBERTa-v3 large (this)** | **0.5511** | **0.848** | **dropped** |
+
+DeBERTa-v3 has stronger raw signal than the LLM but worse diversity. The product (signal × diversity) is in the same dead zone — net effect on the stack is negative.
+
+**Root cause.** SPECTER2 / SciNCL / SciBERT were pre-trained on scientific paper similarity (citation contrastive objectives, scientific abstract corpora). DeBERTa-v3 was pre-trained on CommonCrawl + Wikipedia + Books — **generic English**, no scientific-paper inductive bias. On a 2,494-row supervised target where the label axis is "ASP/AI-symbolic relevance of an abstract", the domain-specific pretraining matters far more than encoder capacity (435M vs 110M).
+
+**Rule of thumb (revises L7, L8, L9 for the encoder choice).**
+
+- For scientific-paper datasets, **prefer encoders pre-trained on scientific corpora** (SPECTER2, SciNCL, SciBERT, allenai/specter*, OAG-BERT). Generic large encoders (DeBERTa-v3, RoBERTa-large, ELECTRA-large) start ~0.05-0.08 OOF QWK behind and tuning does not close the gap.
+- Diversity benefit kicks in only above an OOF floor of **~80% of the strongest anchor's OOF** (already L8). Below that floor, the candidate is dead weight regardless of correlation.
+- Before training a new candidate end-to-end, **run a quick blend probe with its OOF**: if the no-threshold round-QWK of `(anchor mix + 0.10 * candidate)` is below the anchor's round-QWK, do not finish the run — abort and try a different signal source.
+
+**Action items.**
+- [x] Drop step 8 (DeBERTa-v3-large fine-tune). Keep OOF on disk as a negative reference.
+- [ ] If a 4th anchor is still wanted, do **not** try `roberta-large` / `electra-large` — same architecture failure mode predicted. Try instead:
+  - `bge-large-en-v1.5` or `e5-large-v2` (large generic encoders, but pre-trained with **contrastive sentence similarity** — closer to SPECTER2's objective, so signal may transfer).
+  - Non-text signals: OpenAlex citation OOF as a continuous anchor, venue / first-author target encoding.
+- [ ] Add a "quick blend probe" step to every future anchor experiment: compute the `+10%` OOF mix before committing to the full 15-fold run.
+
+---
+
+
+## L10 — When sweeping weights around a public-validated anchor, change ONE knob at a time
+
+**Evidence (2026-05-18):** swept 17 weight combinations around the public-best 60/20/20 (`scincl 0.6 / specter 0.2 / ridge 0.2`, public 0.72103). Picked `70/20/10` for submission because it had the lowest test L1 distance (0.1584 vs 60/20/20's 0.162). It scored Public LB `0.71622`, a `−0.00481` regression.
+
+| Variant | Weights | OOF QWK | Test L1 | Public LB |
+| --- | --- | ---: | ---: | ---: |
+| 60/20/20 (anchor) | scincl 0.6 / specter 0.2 / ridge 0.2 | **0.6412** | 0.162 | **0.72103** |
+| 70/20/10 | scincl 0.7 / specter 0.2 / ridge 0.1 | 0.6393 | 0.158 | 0.71622 |
+
+The 70/20/10 candidate moved **two knobs at once** vs the anchor: SciNCL up by `0.10` and Ridge down by `0.10`. The Ridge cut from 20% to 10% appears to have hurt more than the SciNCL boost helped, even though OOF and test L1 both said "this should work".
+
+**Rule of thumb (refines L6 + L9):**
+
+- For sweeps near a public-validated point, prefer single-knob moves: `65/20/15`, `60/15/25`, `60/25/15`, `55/20/25`, etc., where exactly one weight changes vs the anchor.
+- A multi-knob move that improves both heuristics (lower test L1 *and* equal-ish OOF) can still regress; the heuristic-vs-public correlation is weaker than the single-anchor case.
+- When in doubt, prefer keeping the public-best anchor unless a candidate has *both* a clear OOF win (>0.005) AND a test L1 inside the same band (within 0.01).
+
+**Action items.**
+- [x] Future submission picks should hold ridge weight constant at 0.20 (proven public-safe) when sweeping the BERT-class weights.
+- [ ] Next worth-trying single-knob variants: `65/20/15`, `55/20/25`, `60/15/25`, `60/25/15`.
+
+---
+
+
 ## L9 — Test L1 distance and OOF QWK are heuristics, not laws; blending strong correlated anchors can still help
 
 **Evidence (2026-05-16):** `0.72103` (`blend_3anchor_scincl_specter_ridge_60_20_20`) beat `0.71052` (`blend_2anchor_70_specter`) on public LB by `+0.0105` despite **both metrics suggesting it should regress**:
