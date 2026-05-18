@@ -406,6 +406,9 @@ def main():
     priv_s = X_private[:, primary_idx]
     evaluate("anchor_specter_3s_only", oof, pub_s, priv_s, extra=[1.0])
 
+    # Indices we use across SciNCL, SciBERT and LLM blocks below
+    ridge_idx = next(i for i, a in enumerate(anchors) if a.name == "ridge_5x5")
+
     # 9b. SciNCL anchor-only + 2-anchor scincl + ridge blends (if available)
     scincl_idx = next((i for i, a in enumerate(anchors) if a.name == "scincl"), None)
     if scincl_idx is not None:
@@ -433,6 +436,24 @@ def main():
             ("blend_3anchor_scincl_specter_ridge_60_20_20", 0.60, 0.20, 0.20),
             ("blend_3anchor_scincl_specter_ridge_50_20_30", 0.50, 0.20, 0.30),
             ("blend_3anchor_scincl_specter_ridge_35_35_30", 0.35, 0.35, 0.30),
+            # Sweep around the public-best 60/20/20 (Public LB 0.72103) -- step 7
+            ("blend_3anchor_scincl_specter_ridge_55_25_20", 0.55, 0.25, 0.20),
+            ("blend_3anchor_scincl_specter_ridge_55_20_25", 0.55, 0.20, 0.25),
+            ("blend_3anchor_scincl_specter_ridge_55_30_15", 0.55, 0.30, 0.15),
+            ("blend_3anchor_scincl_specter_ridge_55_15_30", 0.55, 0.15, 0.30),
+            ("blend_3anchor_scincl_specter_ridge_60_15_25", 0.60, 0.15, 0.25),
+            ("blend_3anchor_scincl_specter_ridge_60_25_15", 0.60, 0.25, 0.15),
+            ("blend_3anchor_scincl_specter_ridge_60_30_10", 0.60, 0.30, 0.10),
+            ("blend_3anchor_scincl_specter_ridge_60_10_30", 0.60, 0.10, 0.30),
+            ("blend_3anchor_scincl_specter_ridge_65_15_20", 0.65, 0.15, 0.20),
+            ("blend_3anchor_scincl_specter_ridge_65_20_15", 0.65, 0.20, 0.15),
+            ("blend_3anchor_scincl_specter_ridge_65_25_10", 0.65, 0.25, 0.10),
+            ("blend_3anchor_scincl_specter_ridge_65_10_25", 0.65, 0.10, 0.25),
+            ("blend_3anchor_scincl_specter_ridge_70_15_15", 0.70, 0.15, 0.15),
+            ("blend_3anchor_scincl_specter_ridge_70_20_10", 0.70, 0.20, 0.10),
+            ("blend_3anchor_scincl_specter_ridge_70_10_20", 0.70, 0.10, 0.20),
+            ("blend_3anchor_scincl_specter_ridge_75_10_15", 0.75, 0.10, 0.15),
+            ("blend_3anchor_scincl_specter_ridge_75_15_10", 0.75, 0.15, 0.10),
         ]:
             w = np.zeros(X_train.shape[1])
             w[scincl_idx] = w_scincl
@@ -446,7 +467,6 @@ def main():
 
     # 10. 3-anchor blends (only if scibert is available)
     scibert_idx = next((i for i, a in enumerate(anchors) if a.name == "scibert"), None)
-    ridge_idx = next(i for i, a in enumerate(anchors) if a.name == "ridge_5x5")
     if scibert_idx is not None:
         for name, w_specter, w_ridge, w_scibert in [
             ("blend_3anchor_60_25_15", 0.60, 0.25, 0.15),
