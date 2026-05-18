@@ -1,6 +1,50 @@
 # Lessons learned — for the next agent / future-me
 
 Living document. Each entry records a concrete observation we paid for in
+## L16 — "Frozen knob" must be re-tested isolated when anchor changes; bias mindset cleared by E5 max_len audit
+
+**Backstory (2026-05-18):** comparison with a friend's SPECTER2 fine-tune (Public LB 0.71254 vs ours 0.69972, +0.013) showed his recipe used `MAX_LEN=384` while ours stayed at `256`. After our 0.68718 attempt (v3 cache + max_len 384 + unconstrained tuner) regressed, L6 codified "don't change multiple knobs at once" — but in practice we then **froze** `MAX_LEN=256` for ALL subsequent fine-tunes (SciNCL/SciBERT/BGE/E5) without ever re-isolating that single variable. That's L6 used as a freeze excuse.
+
+**Audit experiment (step 12b):** clone of step 12 E5 recipe, only `MAX_LEN: 256 -> 384`. Everything else identical (mean pool, fp32 load, bf16 autocast, 5×3 folds, AdamW split LR, constrained tuner).
+
+| Run | MAX_LEN | OOF QWK |
+| --- | ---: | ---: |
+| step 12 E5 (anchor) | 256 | **0.6496** |
+| step 12b E5 ablation | 384 | 0.6433 |
+| Δ | +128 tokens | **−0.0063** |
+
+**Result:** the longer context **hurt** E5 by 0.0063 OOF QWK. The mindset bias was wrong; staying at 256 for E5 was correct.
+
+**Why max_len=384 helps SPECTER2 but not E5/BGE (a pre-training data lesson):**
+- SPECTER2 is pre-trained with a **citation-triplet contrastive objective** on **full scientific abstracts** (typically 200-500 tokens). 384 sits inside its training distribution.
+- E5 and BGE are pre-trained with **sentence-pair contrastive objectives** on web/MS-MARCO data where query-passage pairs average ~150 tokens. 256 is already at the *upper edge* of the typical training context. 384 pushes E5 out-of-distribution → encoder behaviour gets noisier rather than richer.
+- This means **max_len is not a universal knob; it interacts with the encoder's pre-training context distribution.** Friend's win wasn't "384 is better"; it was "384 fits SPECTER2's distribution".
+
+**Mindset lesson (the one that mattered most).**
+
+L6 says "change one knob at a time when debugging a regression". That rule is right. The trap was **using L6 to justify never re-testing a knob that had regressed in a multi-knob combo**. After 0.68718 (which moved 3 knobs together), the correct response was:
+- "We don't know which of the 3 caused the regression." ✓ (L6 catches this)
+- "Therefore freeze all 3 forever." ✗ (this is the bias)
+- "Therefore re-test each individually when conditions change." ✓ (this is L16)
+
+A frozen knob from a previous combo is a hypothesis, not a fact. When the anchor set, batch size, precision, or other knobs change (which happened multiple times across step 6 → step 13), the frozen knob should be re-isolated **at least once** before being declared safe.
+
+**Rule of thumb (refines L6 + L10 + L14 with a re-test escape valve).**
+
+- After a multi-knob regression, freeze knobs only **as a hypothesis**. Re-test each knob *isolated* the next time the surrounding configuration changes meaningfully.
+- For knobs that interact with pre-training distribution (max_len, tokenizer prefix, pooling), the re-test should happen **per encoder family**, not per encoder. Once max_len=256 was confirmed for one contrastive-sentence encoder (E5), it's reasonable to extrapolate to BGE/MS-MARCO siblings without re-testing each.
+- Audit the freeze list explicitly when adding a new anchor: if any frozen knob has not been re-tested under the new conditions, that's a debt to address before the new anchor is committed.
+
+**Action items.**
+- [x] E5 max_len=256 confirmed correct. Bias cleared.
+- [x] Save `outputs/e5_large_finetune_max384/` as a negative reference.
+- [ ] Do **not** re-run BGE/SciNCL/SciBERT with max_len=384 — same family as E5 (contrastive sentence similarity), same expected behaviour. Cost/benefit too low.
+- [ ] **DO** consider one cheap re-run of SPECTER2 with the friend's full recipe (max_len=384 + batch=8 + constrained tuner + v2 cache) as a single SPECTER2 anchor variant — could lift the SPECTER2 contribution to the stack. Time budget ~25 min on H200. Defer until after Qwen LoRA result.
+- [ ] When introducing the Qwen LoRA anchor (step 14), audit its frozen knobs explicitly. Currently MAX_LEN=1024 (H200 path) was a config choice, not a frozen knob — no audit needed. The 4-bit/bf16 split is also a hardware choice, not a quality knob.
+
+---
+
+
 ## L15 — Same-family encoders are not additive; pick the best one and replace, do not stack
 
 **Evidence (2026-05-18):** fine-tuned `intfloat/e5-large-v2` (335M, BERT-large arch, mean pool, bf16) using the exact same recipe as step 9 BGE plus the mandatory `"passage: "` prefix. E5 produced the **strongest single anchor** in the project (OOF round-QWK 0.6417 vs BGE 0.6228, SPECTER2 0.6297, SciNCL 0.6117) yet only added **+0.00020 public LB** (0.72374 → 0.72394).
