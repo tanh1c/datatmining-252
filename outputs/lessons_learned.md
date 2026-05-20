@@ -1,6 +1,72 @@
 # Lessons learned — for the next agent / future-me
 
 Living document. Each entry records a concrete observation we paid for in
+## L17 — Out-of-family signal that passes blend probe can still regress public when OOF→public discount goes NEGATIVE
+
+**Evidence (2026-05-19, public score 2026-05-20):** Qwen2.5-7B LoRA fine-tune (5 folds × 1 seed, LoRA r=32, bf16 native on H200, verbalizer inference) was the **first non-encoder anchor to clear both L11/L12 floors**:
+
+| Anchor | OOF | r vs E5 | r vs BGE | Family |
+| --- | ---: | ---: | ---: | --- |
+| Qwen2.5-7B LoRA | 0.6326 | **0.888** | 0.883 | generative LM (out-of-family) |
+| E5-large-v2 | 0.6417 | 1.000 | 0.944 | contrastive sentence sim |
+| BGE-large | 0.6228 | 0.944 | 1.000 | contrastive sentence sim |
+| SPECTER2 | 0.6297 | 0.916 | 0.909 | citation contrastive |
+| SciNCL | 0.6117 | 0.909 | 0.911 | citation contrastive |
+
+Diversity floor cleared (r 0.88 — first non-Ridge anchor in the 0.85-0.92 sweet spot). Signal floor cleared (0.63 ~ SPECTER2). Blend probe found a **first-ever 5-anchor lift over 4-anchor**: best 5-anchor mix had round-QWK 0.6543 vs 4-anchor safest_e5 at 0.6475 — a +0.0068 OOF lift, the largest stack lift since BGE entered.
+
+**Submission result (2026-05-20):**
+
+| Submission | weights (q/e5/sc/sp/r) | OOF | test_L1 | Public | Δ vs safest_e5 (0.72394) |
+| --- | --- | ---: | ---: | ---: | ---: |
+| safest_e5 (anchor) | 0/.50/.30/.20/0 | 0.6593 | **0.1422** | **0.72394** | (baseline) |
+| **safest_with_qwen** | .20/.40/.25/.15/0 | 0.6619 | 0.1523 | **0.72184** | **OOF +0.0026, L1 +0.010, public −0.00210** |
+
+**For the first time in the project, OOF lift translated to a public regression.** Previous patterns (L13):
+- BGE 4-anchor (vs 0.72103): OOF +0.0155 → public +0.0027 (6× discount, positive)
+- E5 4-anchor (vs BGE): OOF +0.0026 → public +0.0002 (13× discount, positive)
+- **Qwen 5-anchor (vs E5): OOF +0.0026 → public −0.00210 (NEGATIVE)**
+
+**Three mutually-non-exclusive hypotheses:**
+
+1. **PEFT adapter chaining bug.** Cell 13 of step 14 calls `get_peft_model(base_model, ...)` per fold without proper teardown. Folds 2-5 emitted `UserWarning: Already found a peft_config attribute in the model. This will lead to having multiple adapters in the model.` Fold 1 OOF QWK was 0.649 (highest); folds 2-5 averaged 0.624. Suggests fold-1 adapter weights leak into fold-2-5 training, inflating overall OOF without translating to test. Most plausible because it has **direct evidence** (peft warning).
+
+2. **Verbalizer score distribution mis-aligned with public split.** Qwen pred dist on test (after blending): `{1:123, 2:60, 3:54, 4:38, 5:23}`. Train dist: `{1:123, 2:70, 3:50, 4:35, 5:22}` — label 2 under-predicted by 10 rows (~14% deficit), label 4 over-predicted by 3 rows. The constrained tuner forces OOF distribution to match train, but the **test score distribution** can still drift if the model's confidence calibration differs systematically between train and test populations.
+
+3. **Single-seed instability.** Qwen used 1 seed × 5 folds = 5 models. Encoder anchors used 3 seeds × 5 folds = 15 models. With only 5 models, the test-side score variance is ~√3 ≈ 1.7× higher than encoders. Some of this variance can flip the sign of a small OOF lift on public.
+
+**Cross-cutting pattern (now 17 lessons in):**
+
+The OOF→public discount has a sign:
+- L13 noted the magnitude was widening (6× → 13×) as we approached the encoder family ceiling.
+- L17 adds: **the sign can flip when a candidate's predicted distribution moves further from train than the anchor's, even by ~0.01 in test L1 distance.** The L1 gap that BGE+E5 lived inside (~0.005-0.015) was the signal-translation zone; outside that zone, OOF gains do not transfer.
+
+This is a **revision of L7's "rank by test L1 first"** rule. L7 said test_L1 is a *first-pass filter*. L17 says test_L1 is a **hard upper bound**: any candidate with test_L1 > anchor's test_L1 + ~0.01 is at risk of negative discount, regardless of OOF lift. The current public-validated anchor's test_L1 is 0.142; the safe band is roughly 0.142 ± 0.005 = [0.137, 0.147]. Anything outside is gamble.
+
+**Rule of thumb (L17 — supersedes L7's filter rule).**
+
+For follow-up submissions to a public-validated anchor:
+1. **Hard cap test_L1 ≤ anchor's test_L1 + 0.005.** Anything above this is too far from the public-validated distribution; OOF lift can no longer compensate.
+2. Within the hard cap, rank by OOF QWK. Submit the candidate that fits both constraints.
+3. If no Qwen-bearing candidate fits, **the anchor is at a local optimum**. Stop sweeping weights; lift requires a different anchor or training fix, not a weight perturbation.
+
+For step 15 specifically:
+- Best Qwen-bearing test_L1 was 0.1523 (safest_with_qwen). Anchor test_L1 0.1422. Gap: 0.010 — outside the safe band by 2×. Submission was a gamble; gamble lost.
+- All other Qwen-bearing candidates have test_L1 ≥ 0.155, even further out. **Do not submit them.**
+
+**Action items.**
+- [x] Mark Qwen 5-anchor `safest_with_qwen` as a public regression (0.72184) in `outputs/leaderboard_tracking.md`.
+- [ ] **DO NOT submit** `next_qwen_5anchor_{probe_winner,high_oof_5anchor}_submission.csv` — both have test_L1 > 0.16, predicted public 0.717-0.720 area.
+- [ ] **Fix the peft adapter chaining bug in `notebooks/step14_qwen_lora_finetune.ipynb` cell 11/13.** Replace the current `unload()` attempt with explicit `del model; gc.collect(); torch.cuda.empty_cache()` between folds, then re-attach a fresh adapter. After fix:
+  - If OOF stays ~0.6326 → bug had minor impact, signal is real but doesn't transfer. Pivot Qwen 14B (more capacity may overcome the calibration mismatch).
+  - If OOF drops to ~0.62 → fold-1 leakage was inflating; signal floor barely cleared. Drop step 15.
+  - If OOF rises (unlikely) → fix actually changes nothing important. Investigate verbalizer further.
+- [ ] Optional: re-run Qwen with **3 seeds** (15 models) to bring variance down to encoder-anchor levels. Cost ~3× the 1-seed run (~150-180 min H200). Worth doing only if the bug fix shows the signal is real.
+- [ ] Final-submission strategy (per private-test risk discussion): if no further lift is found, the 2 Kaggle final picks should be `safest_e5` (current public best, OOF 0.6593, test_L1 0.142) + `safest` BGE 4-anchor (different risk profile, ridge=0.05) — not two near-copies.
+
+---
+
+
 ## L16 — "Frozen knob" must be re-tested isolated when anchor changes; bias mindset cleared by E5 max_len audit
 
 **Backstory (2026-05-18):** comparison with a friend's SPECTER2 fine-tune (Public LB 0.71254 vs ours 0.69972, +0.013) showed his recipe used `MAX_LEN=384` while ours stayed at `256`. After our 0.68718 attempt (v3 cache + max_len 384 + unconstrained tuner) regressed, L6 codified "don't change multiple knobs at once" — but in practice we then **froze** `MAX_LEN=256` for ALL subsequent fine-tunes (SciNCL/SciBERT/BGE/E5) without ever re-isolating that single variable. That's L6 used as a freeze excuse.
