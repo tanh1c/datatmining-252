@@ -1,0 +1,101 @@
+[
+  {
+    "label": "safest_5anchor",
+    "weights": [
+      0.0,
+      0.5,
+      0.3,
+      0.2,
+      0.0
+    ],
+    "oof_qwk": 0.6592849557593436,
+    "test_l1": 0.1421963046882989,
+    "thresholds": [
+      1.8765772387394652,
+      2.4918595182049597,
+      3.2636230885199775,
+      4.1400852774599946
+    ],
+    "pub_dist": {
+      "1": 123,
+      "2": 59,
+      "3": 59,
+      "4": 36,
+      "5": 21
+    },
+    "pri_dist": {
+      "1": 132,
+      "2": 67,
+      "3": 45,
+      "4": 32,
+      "5": 22
+    },
+    "submission": "C:\\Users\\LG\\Desktop\\Study Material\\DataMining\\Assignment\\outputs\\submissions\\next_qwen_fixed_5anchor_safest_5anchor_submission.csv"
+  },
+  {
+    "label": "high_oof_5anchor",
+    "weights": [
+      0.2,
+      0.4,
+      0.2,
+      0.15,
+      0.05
+    ],
+    "oof_qwk": 0.6653000737088615,
+    "test_l1": 0.1556191234802452,
+    "thresholds": [
+      1.8795789826263936,
+      2.49694956260308,
+      3.2095025746952786,
+      4.010280715450083
+    ],
+    "pub_dist": {
+      "1": 123,
+      "2": 63,
+      "3": 53,
+      "4": 37,
+      "5": 22
+    },
+    "pri_dist": {
+      "1": 136,
+      "2": 63,
+      "3": 49,
+      "4": 26,
+      "5": 24
+    },
+    "submission": "C:\\Users\\LG\\Desktop\\Study Material\\DataMining\\Assignment\\outputs\\submissions\\next_qwen_fixed_5anchor_high_oof_5anchor_submission.csv"
+  },
+  {
+    "label": "probe_winner",
+    "weights": [
+      0.25,
+      0.35,
+      0.25,
+      0.15,
+      0.0
+    ],
+    "oof_qwk": 0.6628471574551038,
+    "test_l1": 0.17629693815492756,
+    "thresholds": [
+      1.8977377180041728,
+      2.492523013249783,
+      3.243609576324761,
+      4.051283362398005
+    ],
+    "pub_dist": {
+      "1": 126,
+      "2": 57,
+      "3": 58,
+      "4": 36,
+      "5": 21
+    },
+    "pri_dist": {
+      "1": 138,
+      "2": 60,
+      "3": 51,
+      "4": 27,
+      "5": 22
+    },
+    "submission": "C:\\Users\\LG\\Desktop\\Study Material\\DataMining\\Assignment\\outputs\\submissions\\next_qwen_fixed_5anchor_probe_winner_submission.csv"
+  }
+]

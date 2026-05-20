@@ -1,0 +1,79 @@
+{
+  "method": "qwen_lora_finetune",
+  "model": "Qwen/Qwen2.5-14B-Instruct",
+  "folds": 5,
+  "seeds": [
+    252
+  ],
+  "epochs": 3,
+  "max_len": 1024,
+  "batch_train": 8,
+  "grad_accum_steps": 2,
+  "lr": 0.0002,
+  "lora_r": 32,
+  "lora_alpha": 64,
+  "amp_dtype": "bf16",
+  "inference": "verbalizer (softmax over digit tokens, expected value)",
+  "oof_qwk": 0.6560547381873915,
+  "oof_mae": 0.7662389735364876,
+  "oof_macro_f1": 0.4213786498267753,
+  "thresholds": [
+    1.7925089744533031,
+    2.438011428356031,
+    3.168760785107132,
+    4.069662299963845
+  ],
+  "label_distribution_combined": {
+    "1": 258,
+    "2": 138,
+    "3": 93,
+    "4": 71,
+    "5": 36
+  },
+  "label_distribution_public": {
+    "1": 121,
+    "2": 67,
+    "3": 52,
+    "4": 40,
+    "5": 18
+  },
+  "label_distribution_private": {
+    "1": 137,
+    "2": 71,
+    "3": 41,
+    "4": 31,
+    "5": 18
+  },
+  "fold_log": [
+    {
+      "seed": 252,
+      "fold": 1,
+      "best_round_qwk": 0.6642924521525946,
+      "minutes": 15.49
+    },
+    {
+      "seed": 252,
+      "fold": 2,
+      "best_round_qwk": 0.6259301020225435,
+      "minutes": 15.41
+    },
+    {
+      "seed": 252,
+      "fold": 3,
+      "best_round_qwk": 0.6133318695178728,
+      "minutes": 15.31
+    },
+    {
+      "seed": 252,
+      "fold": 4,
+      "best_round_qwk": 0.6282347116818509,
+      "minutes": 15.33
+    },
+    {
+      "seed": 252,
+      "fold": 5,
+      "best_round_qwk": 0.6689099022829347,
+      "minutes": 15.22
+    }
+  ]
+}

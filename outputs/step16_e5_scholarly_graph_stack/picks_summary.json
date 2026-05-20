@@ -1,0 +1,49 @@
+{
+  "e5_public_lb": 0.72394,
+  "e5_safe_l1": 0.142,
+  "safe_l1_cap": 0.147,
+  "correlation": {
+    "e5_stack": {
+      "e5_stack": 1.0,
+      "graph": 0.5065737071100053
+    },
+    "graph": {
+      "e5_stack": 0.5065737071100053,
+      "graph": 1.0
+    }
+  },
+  "picks": [
+    {
+      "label": "graph_w0p05",
+      "weights": {
+        "e5_stack": 0.95,
+        "scholarly_graph": 0.05
+      },
+      "oof_qwk": 0.6590996028729011,
+      "test_l1": 0.14555200938628549,
+      "thresholds": [
+        1.8993924789344758,
+        2.496758643885467,
+        3.2201803120722006,
+        4.070271508029313
+      ],
+      "submission": "C:\\Users\\LG\\Desktop\\Study Material\\DataMining\\Assignment\\outputs\\submissions\\next_e5_scholarly_graph_graph_w0p05_submission.csv"
+    },
+    {
+      "label": "graph_w0p03",
+      "weights": {
+        "e5_stack": 0.97,
+        "scholarly_graph": 0.03
+      },
+      "oof_qwk": 0.659804141014243,
+      "test_l1": 0.1522634187822586,
+      "thresholds": [
+        1.8910188592819241,
+        2.497789899090497,
+        3.2541155602432403,
+        4.10212341843538
+      ],
+      "submission": "C:\\Users\\LG\\Desktop\\Study Material\\DataMining\\Assignment\\outputs\\submissions\\next_e5_scholarly_graph_graph_w0p03_submission.csv"
+    }
+  ]
+}

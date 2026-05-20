@@ -1,6 +1,65 @@
 # Lessons learned — for the next agent / future-me
 
 Living document. Each entry records a concrete observation we paid for in
+## L19 — Qwen14B OOF lift failed public even inside the L17 safe band; adapter-chain LLM OOF is not trustworthy
+
+**Evidence (2026-05-20):** Qwen2.5-14B LoRA single-anchor output looked much stronger than fixed Qwen7B:
+
+| Anchor | OOF QWK | fold round-QWK spread | test_L1 | Notes |
+| --- | ---: | ---: | ---: | --- |
+| fixed Qwen7B | 0.6205 | 0.5038–0.6546 | ~0.19 single | fresh-base fix applied |
+| Qwen14B old-notebook run | **0.6561** | 0.6133–0.6689 | **0.1925** | PEFT adapter-chaining warnings present |
+
+The raw Qwen14B anchor was distribution-unsafe, so Step 17b/17c tried conservative E5/SciNCL/SPECTER stacks. Local metrics looked promising:
+
+| Submission | weights q/e5/sc/sp/r | OOF | round-QWK | test_L1 | Public | Δ vs E5 best 0.72394 |
+| --- | --- | ---: | ---: | ---: | ---: | ---: |
+| E5 safest anchor | 0/.50/.30/.20/0 | 0.6593 | 0.6475 | 0.1422 | **0.72394** | baseline |
+| Qwen14B safe-heavy | .20/.40/.25/.15/0 | **0.6681** | **0.6541** | **0.1456** | **0.71453** | **−0.00941** |
+| Qwen14B risky-high | .35/.26/.195/.13/.065 | **0.6760** | 0.6527 | 0.1718 | **0.71408** | **−0.00986** |
+
+This is the strongest negative transfer so far: the safe-heavy candidate obeyed the L17 hard cap (`test_L1 <= 0.147`) and had a large local OOF lift (+0.0088), yet public dropped almost one full point of QWK. Therefore L17's safe-band rule is necessary but not sufficient when the new anchor's OOF is contaminated or miscalibrated.
+
+**Most likely cause:** the Qwen14B notebook used the old PEFT flow and emitted adapter-chaining warnings from fold 2 onward (`Already found a peft_config attribute... multiple adapters`). The resulting OOF can look strong because folds are not independent clean fits. The public split exposes the leakage/miscalibration.
+
+**Rule:** do not promote LLM LoRA anchors trained with adapter-chaining warnings, regardless of local OOF or blend test_L1. For Qwen/Llama-style LoRA, only trust runs that reload a fresh base model per fold and clean up the model after each fold.
+
+**Action items.**
+- [x] Mark both Qwen14B submissions as public regressions in `outputs/leaderboard_tracking.md`.
+- [x] Keep `outputs/qwen14b_lora_finetune_outputs/` and `outputs/step17c_qwen14b_heavy_5anchor_stack/` as negative references, not promotion candidates.
+- [ ] If revisiting Qwen14B, rerun with the fixed fresh-base-per-fold notebook before any further submission.
+- [ ] Prioritize the pairwise/cross-encoder reranker path over more adapter-chained Qwen weight sweeps.
+
+---
+
+
+## L18 — Metadata/graph diversity without label signal is not enough to break the E5 ceiling
+
+**Evidence (2026-05-20):** Step 16 built a standalone scholarly graph/concept metadata anchor from cached OpenAlex/Semantic Scholar/Crossref/OpenCitations features. The best candidate was ExtraTrees over citation/reference/FWCI/source-agreement/venue/year/author/S2-field features:
+
+| Anchor | OOF QWK | round-QWK | test_L1 | r vs E5 stack |
+| --- | ---: | ---: | ---: | ---: |
+| Scholarly graph ExtraTrees | 0.3633 | 0.2591 | 0.2395 | 0.507 |
+| E5 safest stack | 0.6593 | 0.6475 | 0.1422 | 1.000 |
+
+Diversity was real (r≈0.51 vs E5 stack), but signal was far below the L11 floor. Blending confirmed it cannot help the current public-validated anchor:
+
+| Blend | OOF | round-QWK | test_L1 | Verdict |
+| --- | ---: | ---: | ---: | --- |
+| graph 0.03 / E5 0.97 | 0.6598 | 0.6468 | 0.1523 | OOF tiny +, outside L17 safe band |
+| graph 0.05 / E5 0.95 | 0.6591 | 0.6460 | 0.1456 | inside L17 safe band, but OOF below E5 |
+| graph 0.08 / E5 0.92 | 0.6616 | 0.6398 | 0.1892 | OOF +, distribution unsafe |
+
+**Rule:** metadata/graph anchors need both diversity and real label signal. Citation counts, FWCI, source agreement, venue/year percentiles, and broad concept fields mostly measure paper impact/indexing context, not ASP relevance. If standalone OOF is ~0.36, even r≈0.5 diversity is unusable except as a diagnostic.
+
+**Action items.**
+- [x] Do not submit `next_e5_scholarly_graph_*`; no candidate both beats E5 and stays inside test_L1 ≤ 0.147.
+- [x] Keep `outputs/scholarly_graph_anchor/` as a negative reference for metadata-only graph features.
+- [ ] If revisiting external metadata, it must add **semantic** concept text/abstract-like features (e.g. OpenAlex concepts/topics as text into an encoder), not raw citation graph metrics alone.
+
+---
+
+
 ## L17 — Out-of-family signal that passes blend probe can still regress public when OOF→public discount goes NEGATIVE
 
 **Evidence (2026-05-19, public score 2026-05-20):** Qwen2.5-7B LoRA fine-tune (5 folds × 1 seed, LoRA r=32, bf16 native on H200, verbalizer inference) was the **first non-encoder anchor to clear both L11/L12 floors**:
@@ -54,14 +113,32 @@ For step 15 specifically:
 - Best Qwen-bearing test_L1 was 0.1523 (safest_with_qwen). Anchor test_L1 0.1422. Gap: 0.010 — outside the safe band by 2×. Submission was a gamble; gamble lost.
 - All other Qwen-bearing candidates have test_L1 ≥ 0.155, even further out. **Do not submit them.**
 
+**Post-fix result (2026-05-20):** fixed `notebooks/step14_qwen_lora_finetune.ipynb` to reload a fresh base model and attach a fresh LoRA adapter per fold. Clean Qwen 7B single-anchor result:
+
+| Run | OOF QWK | OOF MAE | macro-F1 | Fold notes |
+| --- | ---: | ---: | ---: | --- |
+| Qwen 7B before PEFT fix | ~0.6326 | — | — | adapter-chaining warning present |
+| **Qwen 7B after PEFT fix** | **0.6205** | 0.8176 | 0.3939 | fold spread 0.5038–0.6546 |
+
+The fixed run dropped by ~0.012 OOF, confirming the previous Qwen signal was at least partly inflated. It still clears the old 0.55 floor, but is below SciNCL/BGE/SPECTER/E5 and has high fold variance.
+
+Clean fixed-Qwen Step 15b blend sweep (`outputs/step15b_qwen_fixed_5anchor_stack/candidates.csv`) found the same public-risk pattern:
+
+| Candidate | weights q/e5/sc/sp/r | OOF | round-QWK | test_L1 | Verdict |
+| --- | --- | ---: | ---: | ---: | --- |
+| E5 safest | 0/.50/.30/.20/0 | 0.6593 | 0.6475 | **0.1422** | current best |
+| lowest-L1 fixed-Qwen | .15/.45/.25/.15/0 | 0.6646 | 0.6489 | 0.1523 | outside L17 safe band |
+| high-OOF fixed-Qwen ≤0.165 | .20/.40/.20/.15/.05 | 0.6653 | 0.6472 | 0.1556 | outside L17 safe band |
+| probe winner fixed-Qwen | .25/.35/.25/.15/0 | 0.6628 | 0.6501 | 0.1763 | unsafe |
+
+No Qwen-bearing candidate stayed within the current safe cap (`test_L1 <= 0.147`). The only safe candidate is E5-only. Therefore the original public regression was not just a bad candidate choice; Qwen 7B clean remains distribution-unsafe for this stack.
+
 **Action items.**
 - [x] Mark Qwen 5-anchor `safest_with_qwen` as a public regression (0.72184) in `outputs/leaderboard_tracking.md`.
-- [ ] **DO NOT submit** `next_qwen_5anchor_{probe_winner,high_oof_5anchor}_submission.csv` — both have test_L1 > 0.16, predicted public 0.717-0.720 area.
-- [ ] **Fix the peft adapter chaining bug in `notebooks/step14_qwen_lora_finetune.ipynb` cell 11/13.** Replace the current `unload()` attempt with explicit `del model; gc.collect(); torch.cuda.empty_cache()` between folds, then re-attach a fresh adapter. After fix:
-  - If OOF stays ~0.6326 → bug had minor impact, signal is real but doesn't transfer. Pivot Qwen 14B (more capacity may overcome the calibration mismatch).
-  - If OOF drops to ~0.62 → fold-1 leakage was inflating; signal floor barely cleared. Drop step 15.
-  - If OOF rises (unlikely) → fix actually changes nothing important. Investigate verbalizer further.
-- [ ] Optional: re-run Qwen with **3 seeds** (15 models) to bring variance down to encoder-anchor levels. Cost ~3× the 1-seed run (~150-180 min H200). Worth doing only if the bug fix shows the signal is real.
+- [x] Fix the PEFT adapter chaining bug and import clean rerun outputs to `outputs/qwen_lora_finetune_fixed_outputs/`.
+- [x] Rerun fixed-Qwen blend quantification; result: no Qwen-bearing candidate satisfies L17 safe band.
+- [x] **DO NOT submit** `next_qwen_5anchor_{probe_winner,high_oof_5anchor}_submission.csv` or fixed-Qwen Step 15b candidates.
+- [ ] Optional only if pursuing LLMs further: pivot to Qwen 14B / stronger LLM anchor. Do not spend 3-seed budget on Qwen 7B unless the goal is variance measurement, not leaderboard lift.
 - [ ] Final-submission strategy (per private-test risk discussion): if no further lift is found, the 2 Kaggle final picks should be `safest_e5` (current public best, OOF 0.6593, test_L1 0.142) + `safest` BGE 4-anchor (different risk profile, ridge=0.05) — not two near-copies.
 
 ---

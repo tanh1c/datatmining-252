@@ -1,0 +1,34 @@
+{
+  "e5_public_lb": 0.72394,
+  "e5_safe_l1": 0.1422,
+  "safe_l1_cap": 0.147,
+  "correlation": {
+    "e5": {
+      "e5": 1.0,
+      "qwen14b": 0.9136617893276388
+    },
+    "qwen14b": {
+      "e5": 0.9136617893276388,
+      "qwen14b": 1.0
+    }
+  },
+  "picks": [
+    {
+      "label": "qwen14b_w0p03",
+      "weights": {
+        "e5": 0.97,
+        "qwen14b": 0.03
+      },
+      "oof_qwk": 0.6612293064639914,
+      "oof_round_qwk": 0.6507056780322171,
+      "test_l1": 0.14219630468829889,
+      "thresholds": [
+        1.8741964637379054,
+        2.495870762186453,
+        3.2192135551899193,
+        4.101406797859468
+      ],
+      "submission": "C:\\Users\\LG\\Desktop\\Study Material\\DataMining\\Assignment\\outputs\\submissions\\next_e5_qwen14b_conservative_qwen14b_w0p03_submission.csv"
+    }
+  ]
+}

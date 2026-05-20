@@ -1,0 +1,30 @@
+[
+  {
+    "label": "safe_high_oof",
+    "weights": [
+      0.2,
+      0.4,
+      0.25,
+      0.15,
+      0.0
+    ],
+    "oof_qwk": 0.6680650403210247,
+    "oof_round_qwk": 0.6541486584252165,
+    "test_l1": 0.14555200938628549,
+    "submission": "C:\\Users\\LG\\Desktop\\Study Material\\DataMining\\Assignment\\outputs\\submissions\\next_qwen14b_heavy_5anchor_safe_high_oof_submission.csv"
+  },
+  {
+    "label": "risky_high_qwen",
+    "weights": [
+      0.35,
+      0.26,
+      0.195,
+      0.13,
+      0.065
+    ],
+    "oof_qwk": 0.6760079564624676,
+    "oof_round_qwk": 0.6527166350221203,
+    "test_l1": 0.17183522332793336,
+    "submission": "C:\\Users\\LG\\Desktop\\Study Material\\DataMining\\Assignment\\outputs\\submissions\\next_qwen14b_heavy_5anchor_risky_high_qwen_submission.csv"
+  }
+]
