@@ -2,6 +2,35 @@
 
 Living document. Each entry records a concrete observation we paid for in
 
+## L24 — Step36 BGE-M3 fine sweep: small-diff risky probe beat Step25, while higher-OOF probes split
+
+**Evidence (2026-05-24):** Step36 `next_step36_risky_small_diff_ridge_a3_w0p0275_l4_submission.csv` scored public `0.73213`, beating Step25 `0.73054` by `+0.00159`.
+
+| Submission | Local OOF | Lift vs Step25 | test_L1 | Diff vs Step25 | Public |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Step25 BGE-M3 safe | 0.661261 | baseline | 0.145552 | — | 0.73054 |
+| Step36 `ridge_a3`, `w=0.0300`, `lambda=4` | **0.663105** | **+0.001845** | 0.145552 | 9 | 0.72602 |
+| Step36 `ridge_a3`, `w=0.0275`, `lambda=4` | 0.662098 | +0.000837 | 0.148908 | **5** | **0.73213** |
+| Step36 `ridge_a3`, `w=0.0375`, `lambda=4` | **0.663312** | **+0.002051** | 0.148908 | 11 | 0.73201 |
+| Step37 `ridge_a3`, `w=0.0280`, `lambda=6` | 0.662340 | +0.001079 | 0.148908 | 4 vs Step25 / 1 vs Step36 | 0.72879 |
+| Step37 `ridge_a3`, `w=0.0290`, `lambda=6` | **0.663513** | **+0.002253** | 0.145552 | 6 vs Step25 / 5 vs Step36 | 0.72916 |
+
+**What worked:** stay very close to the validated Step25 mechanism, but retune the BGE-M3 correction from `ridge_a30, w=0.02` to `ridge_a3, w=0.0275` with `threshold_lambda=4.0`. This kept Step18b as the backbone and used BGE-M3 only as a near-threshold diagnostic.
+
+**What failed:** OOF ranking alone was misleading. The `w=0.0300` probe had much higher OOF and the same `test_L1` as Step25, but public regressed to `0.72602`. The highest-OOF Step36 probe `w=0.0375` scored well (`0.73201`) but still lost to the smaller-diff `w=0.0275` probe. Step37 then showed that even a one-row-different micro-retune (`w=0.0280,l6`) regressed to `0.72879`, and the best local OOF micro-retune (`w=0.0290,l6`, OOF `0.663513`) regressed to `0.72916`.
+
+**What this revises:** the strict `test_L1 <= 0.147` cap is a good default safety rule, not an absolute law. When a candidate is extremely close to a public-validated anchor and changes only a handful of rows, an explicitly labeled risky public probe can be justified. The user's pushback to test Step36 was correct; without that probe, the new best would have been missed.
+
+**Rule:** near a public-best anchor, rank candidates by a combination of OOF, distribution safety, and **diff versus the current best**, but after Step37 do not assume that tiny diff is automatically safe. Step36 `w=0.0275,l4` looks like a sharp public optimum: one-row or five-row micro-retunes around it can still hurt badly. Further attempts should inspect the actual changed rows before submitting, not continue blind weight/threshold micro-sweeps.
+
+**Action items.**
+- [x] Promote Step36 `w=0.0275` as current best public anchor (`0.73213`).
+- [x] Record the failed/high-OOF Step36 probes so future sweeps do not over-trust OOF.
+- [ ] Inspect the 5 changed rows between Step25 and Step36 winner; these are now the most valuable forensic examples.
+- [x] Test tiny single-knob neighborhoods around `ridge_a3, w=0.0275, lambda=4`; Step37 regressed, so stop blind micro-sweeps.
+
+---
+
 ## L23 — Step25 BGE-M3 safe frozen anchor became the new best; small distribution-safe encoder diagnostics can still transfer
 
 **Evidence (2026-05-24):** Step25 `next_step25_bge_m3_best_safe_submission.csv` scored public `0.73054`, beating Step18b `0.72808` by `+0.00246`.

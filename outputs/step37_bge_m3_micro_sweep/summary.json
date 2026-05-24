@@ -1,0 +1,28 @@
+{
+  "step36_best_oof_qwk": 0.6620979854294228,
+  "probe_candidates": 12,
+  "picks": [
+    {
+      "label": "best_micro",
+      "name": "step18b_bge_m3_ridge_a3p0_w0p02900_l6p0",
+      "submission": "C:\\Users\\LG\\Desktop\\Study Material\\DataMining\\Assignment\\outputs\\submissions\\next_step37_best_micro_submission.csv",
+      "oof_qwk": 0.6635133808224969,
+      "oof_lift_vs_step25": 0.0022528224432639687,
+      "oof_lift_vs_step36": 0.0014153953930741148,
+      "test_l1": 0.14555200938628546,
+      "diff_vs_step25_total": 6,
+      "diff_vs_step36_total": 5
+    },
+    {
+      "label": "close_oof_micro",
+      "name": "step18b_bge_m3_ridge_a3p0_w0p02800_l6p0",
+      "submission": "C:\\Users\\LG\\Desktop\\Study Material\\DataMining\\Assignment\\outputs\\submissions\\next_step37_close_oof_micro_submission.csv",
+      "oof_qwk": 0.662339819431477,
+      "oof_lift_vs_step25": 0.001079261052244096,
+      "oof_lift_vs_step36": 0.000241834002054242,
+      "test_l1": 0.14890771408427203,
+      "diff_vs_step25_total": 4,
+      "diff_vs_step36_total": 1
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "step25_oof_qwk": 0.6612605583792329,
+  "safe_l1_cap": 0.147,
+  "max_test_changed": 12,
+  "safe_candidates": 166,
+  "picks": [
+    {
+      "label": "best_safe",
+      "submission": "C:\\Users\\LG\\Desktop\\Study Material\\DataMining\\Assignment\\outputs\\submissions\\next_step35d_best_safe_submission.csv",
+      "oof_qwk": 0.6616990523245885,
+      "oof_lift_vs_step25": 0.00043849394535555586,
+      "test_l1": 0.14555200938628546,
+      "changed": 1
+    },
+    {
+      "label": "second_safe",
+      "submission": "C:\\Users\\LG\\Desktop\\Study Material\\DataMining\\Assignment\\outputs\\submissions\\next_step35d_second_safe_submission.csv",
+      "oof_qwk": 0.6616990523245885,
+      "oof_lift_vs_step25": 0.00043849394535555586,
+      "test_l1": 0.14555200938628546,
+      "changed": 1
+    }
+  ]
+}

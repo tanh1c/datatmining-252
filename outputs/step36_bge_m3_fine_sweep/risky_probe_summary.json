@@ -1,0 +1,34 @@
+{
+  "probes": [
+    {
+      "label": "risky_high_oof_ridge_a3_w0p030_l4",
+      "name": "step18b_bge_m3_ridge_a3p0_w0p0300_l4p0",
+      "submission": "C:\\Users\\LG\\Desktop\\Study Material\\DataMining\\Assignment\\outputs\\submissions\\next_step36_risky_high_oof_ridge_a3_w0p030_l4_submission.csv",
+      "oof_qwk": 0.663105276744804,
+      "oof_lift_vs_step25": 0.0018447183655710964,
+      "test_l1": 0.14555200938628546,
+      "diff_vs_step25_total": 9,
+      "probe_note": "risky_public_probe_not_best_safe"
+    },
+    {
+      "label": "risky_small_diff_ridge_a3_w0p0275_l4",
+      "name": "step18b_bge_m3_ridge_a3p0_w0p0275_l4p0",
+      "submission": "C:\\Users\\LG\\Desktop\\Study Material\\DataMining\\Assignment\\outputs\\submissions\\next_step36_risky_small_diff_ridge_a3_w0p0275_l4_submission.csv",
+      "oof_qwk": 0.6620979854294228,
+      "oof_lift_vs_step25": 0.000837427050189854,
+      "test_l1": 0.14890771408427203,
+      "diff_vs_step25_total": 5,
+      "probe_note": "risky_public_probe_not_best_safe"
+    },
+    {
+      "label": "risky_high_oof_ridge_a3_w0p0375_l4",
+      "name": "step18b_bge_m3_ridge_a3p0_w0p0375_l4p0",
+      "submission": "C:\\Users\\LG\\Desktop\\Study Material\\DataMining\\Assignment\\outputs\\submissions\\next_step36_risky_high_oof_ridge_a3_w0p0375_l4_submission.csv",
+      "oof_qwk": 0.6633119832881308,
+      "oof_lift_vs_step25": 0.0020514249088978698,
+      "test_l1": 0.14890771408427206,
+      "diff_vs_step25_total": 11,
+      "probe_note": "risky_public_probe_not_best_safe"
+    }
+  ]
+}

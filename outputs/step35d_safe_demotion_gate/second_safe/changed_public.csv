@@ -1,0 +1,2 @@
+id,title,venue,step25_pred,rubric_pred,rubric_expected,rubric_gap,threshold_margin,safe_demotion_context,protected_logic,proposed_pred,split
+2022,Incremental Determinization for Quantifier Elimination and Functional Synthesis.,cav,2,1,2.6057517790564275,0.10344556760951135,0.004770456132777934,1,0,1,public

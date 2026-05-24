@@ -1,0 +1,19 @@
+{
+  "step25_oof_qwk": 0.6612605583792329,
+  "safe_l1_cap": 0.147,
+  "max_test_changed": 15,
+  "loaded_diagnostics": [
+    "deberta_v3",
+    "llm_zeroshot",
+    "llm_zeroshot_v2",
+    "modernbert_best",
+    "modernbert_second",
+    "openalex_anchor",
+    "pairwise_e5",
+    "pairwise_specter2",
+    "scibert_finetune",
+    "specter2_finetune"
+  ],
+  "safe_candidates": 0,
+  "picks": []
+}
