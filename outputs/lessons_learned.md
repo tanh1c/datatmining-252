@@ -1,6 +1,145 @@
 # Lessons learned — for the next agent / future-me
 
 Living document. Each entry records a concrete observation we paid for in
+
+## L23 — Step25 BGE-M3 safe frozen anchor became the new best; small distribution-safe encoder diagnostics can still transfer
+
+**Evidence (2026-05-24):** Step25 `next_step25_bge_m3_best_safe_submission.csv` scored public `0.73054`, beating Step18b `0.72808` by `+0.00246`.
+
+| Submission | Local OOF | Lift vs Step18b | test_L1 | Changed test rows | Public |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Step18b | 0.660176 | baseline | 0.145552 | — | 0.72808 |
+| Step25 BGE-M3 | **0.661261** | **+0.001084** | **0.145552** | **9** | **0.73054** |
+
+**What worked:** BGE-M3 was used as a frozen diagnostic anchor with a tiny Ridge blend (`ridge_a30`, `w=0.02`) over Step18b, not as a broad dominant model. It preserved the public-validated distribution band and only changed a few rows.
+
+**What this revises:** Step31's reverse-forensics warned that most changes away from Step18b hurt public, but Step25 proves a carefully gated low-weight frozen encoder can still improve. The mistake would be to generalize this into heavier BGE-M3 sweeps; the winning pattern is narrow and distribution-safe.
+
+**Rule:** after Step18b, the next improvement path is not larger generative LMs or broad retraining; it is small frozen-anchor diagnostic corrections with `test_L1 <= 0.147`, changed rows controlled, and manual inspection of the actual changed rows.
+
+**Action items.**
+- [x] Promote Step25 as current best public anchor (`0.73054`).
+- [ ] Inspect Step25's 9 changed test rows vs Step18b and categorize them.
+- [ ] Use Step25 as the new baseline for future micro-gates.
+- [ ] Do not submit Step26/28/30 broad candidates; they failed safety transfer.
+
+---
+
+## L22 — Surgical Qwen14B disagreement gates can preserve public, but OOF-perfect tiny gates may only tie the best
+
+**Evidence (2026-05-22):** After Step22 broad Qwen14B blending regressed public, Step23 used clean Qwen14B only as a narrow disagreement signal over the public-best Step18b score. The winning gate kept Step18b thresholds fixed and changed only rows near the Step18b 3/4 boundary where Qwen disagreed by at least 2 labels.
+
+| Submission | Local OOF | Lift vs Step18b | test_L1 | Changed | OOF improved/worsened | Public |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| Step18b current best | 0.660176 | baseline | 0.145552 | — | — | **0.72808** |
+| `next_step23_best_safe_gate_submission.csv` | **0.663062** | **+0.002886** | 0.145552 | 12 | **12/0** | **0.72808** |
+
+**What worked:** Unlike Step22, the surgical gate did not harm public. It preserved Step18b thresholds and distribution, changed only 12 rows, and avoided broad score blending. This confirms the right way to use Qwen14B is as a row-level diagnostic, not as a global stack weight.
+
+**What did not work:** Even a locally perfect 12/12 OOF gate did not improve public beyond Step18b. The likely explanation is public/private split mismatch at the individual-row level: the OOF examples were real train corrections, but the analogous test rows were either absent from public, already correctly handled by Step18b, or balanced by hidden misses.
+
+**Rule:** fixed-threshold small gates are safer than per-rule threshold retuning for this stage. They isolate the effect of the changed rows and preserve the public-proven Step18b calibration. Per-rule differential-evolution threshold tuning across many gates would inflate OOF and make it unclear whether lift comes from the gate or from retuning the whole label distribution.
+
+**Action items.**
+- [x] Record Step23 public tie (`0.72808`) in `outputs/leaderboard_tracking.md`.
+- [x] Keep Step18b as the main best method; Step23 is at most a private-test hedge because it ties public rather than beating it.
+- [ ] Do not submit `second_safe_gate`; it is effectively duplicate signal and unlikely to add useful leaderboard information.
+- [ ] Future attempts should not search broader Qwen gates. Instead, inspect exactly why the 12 Step23 OOF fixes did not move public, then add only non-Qwen pattern features or constraints that target unmatched public/private failure modes.
+
+---
+
+## L21 — Clean Qwen14B proves the adapter fix but still fails public; high-capacity LLM anchors need changed-row validation beyond test_L1
+
+**Evidence (2026-05-21):** Step 22 reran Qwen2.5-14B-Instruct LoRA on Modal H200 using the fixed fresh-base-per-fold discipline from Step 14:
+
+```text
+model = Qwen/Qwen2.5-14B-Instruct
+precision = bf16 native
+LoRA = r32 / alpha64
+max_len = 1024
+batch = 8 x grad_accum 2
+folds = 5 x 1 seed
+```
+
+The clean single anchor was real and no longer showed the old adapter-chain failure:
+
+| Anchor | OOF QWK | Fold round-QWK spread | Notes |
+| --- | ---: | --- | --- |
+| clean Qwen14B | 0.650885 | 0.6212-0.6694 | fresh base loaded per fold; no PEFT adapter-chain warning |
+| E5 reference | 0.6496 | — | encoder anchor reference |
+
+Stacking looked excellent locally:
+
+| Submission | weights q/e5/sc/sp/r | OOF | lift vs Step18b | test_L1 | changed | improved/worsened | Public |
+| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| Step18b current best | targeted E5 calibrator | 0.660176 | baseline | 0.145552 | — | — | **0.72808** |
+| Step22 main | .15/.3825/.2975/.17/0 | **0.668669** | **+0.008492** | 0.145552 | 137 | 87/50 | **0.72403** |
+| Step22 safer hedge | .10/.495/.225/.18/0 | 0.667131 | +0.006954 | 0.144990 | 108 | 71/37 | **0.72106** |
+
+**Conclusion:** the old Qwen14B failure was not only adapter-chain leakage. Clean Qwen14B is a strong and diverse anchor (`r≈0.88-0.89` vs encoders), but the current train/public split still penalizes its changed-row directions. The safe-band rule (`test_L1 <= 0.147`) is necessary but no longer sufficient for high-capacity generative-LM anchors: both Step22 submissions stayed inside the band and still regressed.
+
+**What failed:** local OOF rewarded many Qwen-driven corrections, but public did not. The main candidate had 54 risky promotions and 3 core-ish 5→4 demotions; the hedge reduced this to 37 and 1 but public became even worse. Therefore simply lowering Qwen weight is not enough.
+
+**Rule:** do not submit more clean-Qwen14B weight sweeps unless there is a new constraint that directly targets public-failing changed-row directions. For high-capacity LLM anchors, require all of:
+1. meaningful OOF lift,
+2. safe `test_L1`,
+3. changed-row forensic profile that is not dominated by KR/CAV/formal-adjacent promotions or core-ASP demotions,
+4. preferably validation from a second seed or an orthogonal audit, not one 5-fold seed alone.
+
+**Action items.**
+- [x] Record `next_step22_qwen14b_clean_main_high_oof_safe_l1_submission.csv` public `0.72403` as a regression vs Step18b.
+- [x] Record `next_step22_qwen14b_clean_safer_hedge_submission.csv` public `0.72106` as a stronger regression.
+- [x] Keep Step18b (`0.72808`) as current best.
+- [ ] Stop Qwen14B weight-only sweeps; if revisiting Qwen, use it only as a diagnostic feature with stricter row-level gates or pairwise reranking, not as a broad blend weight.
+- [ ] Future 0.75 attempts should return to OOF-error targeted calibration / row-level forensic constraints rather than adding more broad high-capacity anchors.
+
+---
+
+## L20 — Tiny OOF-audited pattern calibration can beat the encoder ceiling if it stays distribution-safe
+
+**Evidence (2026-05-21):** Step 18 audited the current-best E5 stack OOF errors and found systematic label-axis mistakes that pure encoder similarity was not correcting:
+
+| Error group | n | mean true | mean pred | Key pattern |
+| --- | ---: | ---: | ---: | --- |
+| false-low big (`pred <= true-2`) | 200 | 3.835 | 1.625 | KR/CAV/LICS/formal papers often lack explicit ASP tokens |
+| false-high big (`pred >= true+2`) | 239 | 1.548 | 3.837 | ASP/logic/AI keywords can over-trigger high labels |
+| true label 5 predicted <=3 | 49 | 5.000 | 2.633 | many are KR/AI/formal high-relevance papers without core ASP wording |
+| true label 1 predicted >=3 | 135 | 1.000 | 3.385 | explainable AI / logic-programming / ASP-control titles can be low-label traps |
+
+Step 18b then trained a tiny OOF-safe calibration layer over the public-proven E5 stack:
+
+```text
+base_score = 0.50 * e5 + 0.30 * scincl + 0.20 * specter2 + 0.00 * ridge
+calibrator = Ridge(alpha=10) over base_score + OOF-audit pattern/metadata features
+final_score = 0.92 * base_score + 0.08 * calibrator
+```
+
+**Submission result:**
+
+| Submission | OOF | round-QWK | test_L1 | Public | Δ vs E5 best 0.72394 |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| E5 safest anchor | 0.659285 | **0.647483** | **0.142196** | 0.72394 | baseline |
+| `next_step18b_targeted_blend_ridge_a10_w0p08_submission.csv` | **0.660176** | 0.646028 | 0.145552 | **0.72808** | **+0.00414** |
+
+The OOF lift was only +0.00089 and round-QWK dropped slightly, but the public lift was +0.00414. This is the first successful break above the E5 encoder ceiling after Qwen/metadata experiments failed.
+
+**Why this transferred when Qwen did not:**
+- The calibrator is small (`w=0.08`) and regularized, so it cannot dominate the proven E5 score.
+- Features came from train OOF error structure, not public-row tuning.
+- `test_L1=0.1456` stayed within the L17 safe cap (`<=0.147`).
+- The new signal is label-axis semantics (meta/proceedings, keyword traps, KR/formal false-lows), not another same-family encoder.
+
+**Rule:** once a strong encoder stack reaches a ceiling, small OOF-audited feature calibration is a better next move than adding noisy high-capacity anchors. Require all three before promotion: (1) private-safe features only, (2) tiny blend weight / strong regularization, (3) `test_L1` inside the current public-validated safe band.
+
+**Action items.**
+- [x] Promote `next_step18b_targeted_blend_ridge_a10_w0p08_submission.csv` as the current best public anchor (`0.72808`).
+- [x] Archive artifacts under `outputs/0.72808/` and update `outputs/current_best_method.md`.
+- [ ] Do not submit heavier Step 18b tree blends unless they are reworked to stay inside `test_L1 <= 0.147`; the best tree blend had higher OOF but unsafe distribution.
+- [ ] Next improvement should deepen the same approach: inspect changed rows and add only a few targeted, OOF-validated corrections rather than increasing calibrator capacity.
+
+---
+
+
 ## L19 — Qwen14B OOF lift failed public even inside the L17 safe band; adapter-chain LLM OOF is not trustworthy
 
 **Evidence (2026-05-20):** Qwen2.5-14B LoRA single-anchor output looked much stronger than fixed Qwen7B:

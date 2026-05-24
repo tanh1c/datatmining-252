@@ -1,0 +1,33 @@
+{
+  "method": "bge_m3_frozen_anchor",
+  "model": "BAAI/bge-m3",
+  "root": "/tmp/asp_step25_work",
+  "batch_size": 8,
+  "max_length": 8192,
+  "use_fp16": true,
+  "train_rows": 2494,
+  "public_rows": 298,
+  "private_rows": 298,
+  "train_has_abstract": 2388,
+  "public_has_abstract": 284,
+  "private_has_abstract": 286,
+  "train_dense_shape": [
+    2494,
+    1024
+  ],
+  "public_dense_shape": [
+    298,
+    1024
+  ],
+  "private_dense_shape": [
+    298,
+    1024
+  ],
+  "rubrics": [
+    "class1_irrelevant",
+    "class2_adjacent",
+    "class3_related",
+    "class4_relevant",
+    "class5_core"
+  ]
+}

@@ -1,0 +1,6 @@
+rubric,text
+class1_irrelevant,"Papers not about Answer Set Programming, Logic Programming, Knowledge Representation, nonmonotonic reasoning, stable model semantics, Datalog, ASP solvers, or closely related KR and LP methods."
+class2_adjacent,"Papers adjacent to logic, formal methods, planning, verification, theorem proving, databases, ontologies, or AI reasoning, but not centrally about ASP, LP, KR, stable models, or nonmonotonic reasoning."
+class3_related,"Papers related to Knowledge Representation, Logic Programming, argumentation, abduction, Datalog, planning, ontologies, or symbolic AI methods with some connection to ASP or nonmonotonic reasoning."
+class4_relevant,"Papers clearly relevant to Answer Set Programming, Logic Programming, stable model semantics, nonmonotonic reasoning, ASP solving, grounding, KR formalisms, or direct ASP applications."
+class5_core,"Core papers on Answer Set Programming, answer sets, stable model semantics, ASP solvers such as clingo or DLV, grounding, disjunctive logic programs, nonmonotonic logic programming, and central theoretical or solver advances."

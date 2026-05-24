@@ -1,0 +1,20 @@
+{
+  "step18b_oof_qwk": 0.660176335745315,
+  "safe_l1_cap": 0.147,
+  "picks": [
+    {
+      "label": "best_safe",
+      "name": "step18b_bge_m3_ridge_a30p0_w0p02",
+      "oof_qwk": 0.6612605583792329,
+      "oof_lift": 0.0010842226339179417,
+      "test_l1": 0.14555200938628549,
+      "thresholds": [
+        1.8943413314167312,
+        2.4941827379126957,
+        3.2418010646830067,
+        4.089984979252849
+      ],
+      "submission": "C:\\Users\\LG\\Desktop\\Study Material\\DataMining\\Assignment\\outputs\\submissions\\next_step25_bge_m3_best_safe_submission.csv"
+    }
+  ]
+}
