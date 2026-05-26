@@ -2,6 +2,78 @@
 
 Living document. Each entry records a concrete observation we paid for in
 
+## L27 — Step41 SPECTER-up retune: SPECTER was the protected backbone weight, not E5/SciNCL
+
+**Evidence (2026-05-26):** After Step41 high-E5/SciNCL probes regressed badly, the user noticed all failed variants had reduced SPECTER from the Step39 base mix. Testing the opposite direction produced a new public best.
+
+| Submission | Base mix E5/SciNCL/SPECTER/Ridge | Local OOF | test_L1 | Diff vs Step39 | Public | Result |
+| --- | --- | ---: | ---: | ---: | ---: | --- |
+| Step39 anchor | 50 / 30 / 20 / 0 | 0.662586 | 0.152263 | — | 0.73215 | previous best |
+| Step41 high E5/SciNCL | 55 / 35 / 10 / 0 | 0.659013 | 0.162331 | 12 | 0.72062 | severe regression |
+| Step41 higher E5 | 60 / 30 / 10 / 0 | 0.659128 | 0.169042 | 20 | 0.71643 | severe regression |
+| Step41 balanced high E5 | 55 / 30 / 15 / 0 | 0.659008 | 0.182465 | 18 | 0.71719 | severe regression |
+| Step41 SPECTER25 from E5 | 45 / 30 / 25 / 0 | 0.659475 | 0.172398 | 19 | 0.73022 | mild regression |
+| Step41 SPECTER30 from SciNCL | 50 / 20 / 30 / 0 | **0.663141** | 0.155619 | 16 | **0.73290** | **new best** |
+
+**What worked:** do not reduce SPECTER. The successful move kept E5 at `0.50`, reduced SciNCL from `0.30` to `0.20`, and increased SPECTER from `0.20` to `0.30`, then kept the same Step39 wrapper: `90%` base stack + `10%` Ridge(alpha=10) targeted calibrator, followed by `97.25%` wrapped backbone + `2.75%` BGE-M3 Ridge(alpha=3), `threshold_lambda=4`.
+
+**What failed:** increasing E5/SciNCL by cutting SPECTER to `0.10–0.15` destroyed public transfer. Increasing SPECTER to `0.25` by taking weight from E5 also did not help. The public-positive direction specifically appears to be **shift weight from SciNCL to SPECTER while preserving E5 at 50%**.
+
+**Rule:** inside the Step39/41 best family, SPECTER is a protected semantic anchor and should not be reduced below `0.20`. The next sweep should be a narrow SciNCL→SPECTER transfer around `E5=0.50, Ridge=0`, e.g. SPECTER `0.26–0.34`, SciNCL `0.24–0.16`, with the Step39 calibrator+BGE wrapper fixed.
+
+**Action items.**
+- [x] Promote `next_step41_specter30_from_scincl_ridge0_submission.csv` as current best public anchor (`0.73290`).
+- [x] Record `next_step41_specter25_from_e5_ridge0_submission.csv` as a regression (`0.73022`).
+- [ ] Inspect the 16 Step41-vs-Step39 changed rows to understand why the SPECTER30/SciNCL20 direction transferred.
+- [ ] If more probing is allowed, sweep only the SciNCL→SPECTER tradeoff around the new best, not E5 increases.
+
+---
+
+## L26 — Step40/41 early probes: fine calibrator sweeps and SPECTER-reducing large-backbone retunes regress
+
+**Evidence (2026-05-25):** Step40 and the first Step41 probes tested two plausible follow-ups after Step39 became the public best at `0.73215`: fine-sweeping the Step18b calibrator and retuning the large Step13 E5/SciNCL/SPECTER backbone by increasing E5/SciNCL. These regressed publicly.
+
+| Submission | Local OOF | Diff vs Step39 | Public | Result |
+| --- | ---: | ---: | ---: | --- |
+| Step39 anchor `next_step39_best_backbone_oof_submission.csv` | **0.662586** | — | **0.73215** | previous best |
+| Step40 closest fine probe `bw=0.0975,l4` | 0.662409 | 2 | 0.73079 | regressed despite tiny diff |
+| Step41 `E5=0.55/SciNCL=0.35/SPECTER=0.10/Ridge=0` | 0.659013 | 12 | 0.72062 | severe regression |
+| Step41 `E5=0.60/SciNCL=0.30/SPECTER=0.10/Ridge=0` | 0.659128 | 20 | 0.71643 | severe regression |
+| Step41 `E5=0.55/SciNCL=0.30/SPECTER=0.15/Ridge=0` | 0.659008 | 18 | 0.71719 | severe regression |
+
+**What failed:** even the Step40 two-row probe lost `-0.00136` public QWK, so tiny diff from Step39 is not automatically safe. The early Step41 high-E5/SciNCL variants also showed that reducing SPECTER away from the Step13/39 base mix is very harmful, even with the same Step39 calibrator and BGE-M3 wrapper.
+
+**Rule:** do not continue fine calibrator sweeps or E5/SciNCL-increase sweeps that cut SPECTER. Step39 is no longer the best, but its wrapper remains useful; the validated new direction is L27's SciNCL→SPECTER transfer.
+
+**Action items.**
+- [x] Record Step40 public regression (`0.73079`).
+- [x] Record Step41 forced high-E5/SciNCL regressions (`0.72062`, `0.71643`, `0.71719`).
+- [x] Revise this lesson after L27 showed SPECTER-up from SciNCL is the exception that improves public.
+
+---
+
+## L25 — Step39 backbone retune: increasing Step18b targeted calibrator to 10% barely beats Step36
+
+**Evidence (2026-05-25):** Step39 `next_step39_best_backbone_oof_submission.csv` scored public `0.73215`, beating Step36 `0.73213` by a tiny `+0.00002`.
+
+| Submission | Local OOF | Lift vs Step36 | test_L1 | Diff vs Step36 | Public |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Step36 `Step18b w=0.08 + BGE w=0.0275,l4` | 0.662098 | baseline | 0.148908 | — | 0.73213 |
+| Step39 `Step18b calibrator w=0.10 + BGE w=0.0275,l4` | **0.662586** | **+0.000488** | 0.152263 | 5 | **0.73215** |
+
+**What worked:** after Step37/Step38 showed the BGE-M3 `2.75%` correction itself was brittle from both sides, retuning the much larger Step18b backbone was the right next knob. Raising the targeted Ridge(alpha=10) calibrator inside Step18b from `0.08` to `0.10` increased OOF and transferred by a very small public margin while keeping the proven BGE-M3 diagnostic fixed.
+
+**What failed / caution:** the public lift is only `+0.00002`, effectively a knife-edge improvement. The candidate has higher `test_L1=0.152263` than Step36 and changes 5 rows vs Step36, so do not generalize this into broad backbone-weight sweeps without changed-row inspection. It says the Step18b audit features still have a little useful signal, not that heavier calibrator weight is broadly safe.
+
+**Rule:** when BGE-M3 micro-sweeps around Step36 fail, the next useful knob is the Step18b targeted-calibrator backbone, but only in tiny increments and with public-risk labeling. Treat Step39 `backbone_weight=0.10, BGE w=0.0275, lambda=4` as the new public anchor until beaten; future attempts should inspect the 5 Step39-vs-Step36 changed rows before trying `0.09/0.10/0.11` micro-neighborhoods.
+
+**Action items.**
+- [x] Promote Step39 `backbone_weight=0.10, BGE w=0.0275, lambda=4` as current best public anchor (`0.73215`).
+- [ ] Inspect the 5 changed rows between Step36 and Step39; they are now the key forensic examples.
+- [ ] If more probing is allowed, search around Step18b backbone `0.09–0.105` only after changed-row review, not as a blind broad sweep.
+
+---
+
 ## L24 — Step36 BGE-M3 fine sweep: small-diff risky probe beat Step25, while higher-OOF probes split
 
 **Evidence (2026-05-24):** Step36 `next_step36_risky_small_diff_ridge_a3_w0p0275_l4_submission.csv` scored public `0.73213`, beating Step25 `0.73054` by `+0.00159`.
@@ -14,20 +86,22 @@ Living document. Each entry records a concrete observation we paid for in
 | Step36 `ridge_a3`, `w=0.0375`, `lambda=4` | **0.663312** | **+0.002051** | 0.148908 | 11 | 0.73201 |
 | Step37 `ridge_a3`, `w=0.0280`, `lambda=6` | 0.662340 | +0.001079 | 0.148908 | 4 vs Step25 / 1 vs Step36 | 0.72879 |
 | Step37 `ridge_a3`, `w=0.0290`, `lambda=6` | **0.663513** | **+0.002253** | 0.145552 | 6 vs Step25 / 5 vs Step36 | 0.72916 |
+| Step38 `ridge_a3`, `w=0.0265`, `lambda=4` | 0.662763 | +0.001503 | 0.148908 | 4 vs Step25 / 5 vs Step36 | 0.72635 |
+| Step38 `ridge_a3`, `w=0.0260`, `lambda=6` | 0.662213 | +0.000953 | 0.148908 | 4 vs Step25 / 1 vs Step36 | 0.72879 |
 
 **What worked:** stay very close to the validated Step25 mechanism, but retune the BGE-M3 correction from `ridge_a30, w=0.02` to `ridge_a3, w=0.0275` with `threshold_lambda=4.0`. This kept Step18b as the backbone and used BGE-M3 only as a near-threshold diagnostic.
 
-**What failed:** OOF ranking alone was misleading. The `w=0.0300` probe had much higher OOF and the same `test_L1` as Step25, but public regressed to `0.72602`. The highest-OOF Step36 probe `w=0.0375` scored well (`0.73201`) but still lost to the smaller-diff `w=0.0275` probe. Step37 then showed that even a one-row-different micro-retune (`w=0.0280,l6`) regressed to `0.72879`, and the best local OOF micro-retune (`w=0.0290,l6`, OOF `0.663513`) regressed to `0.72916`.
+**What failed:** OOF ranking alone was misleading. The `w=0.0300` probe had much higher OOF and the same `test_L1` as Step25, but public regressed to `0.72602`. The highest-OOF Step36 probe `w=0.0375` scored well (`0.73201`) but still lost to the smaller-diff `w=0.0275` probe. Step37 then showed that even a one-row-different micro-retune (`w=0.0280,l6`) regressed to `0.72879`, and the best local OOF micro-retune (`w=0.0290,l6`, OOF `0.663513`) regressed to `0.72916`. Step38 tested the lower-weight side (`w=0.0265,l4` and `w=0.0260,l6`); both had positive OOF lift over Step36/Step25 but public regressed to `0.72635` and `0.72879`, so lowering BGE-M3 weight does not repair the brittle changed-row directions.
 
 **What this revises:** the strict `test_L1 <= 0.147` cap is a good default safety rule, not an absolute law. When a candidate is extremely close to a public-validated anchor and changes only a handful of rows, an explicitly labeled risky public probe can be justified. The user's pushback to test Step36 was correct; without that probe, the new best would have been missed.
 
-**Rule:** near a public-best anchor, rank candidates by a combination of OOF, distribution safety, and **diff versus the current best**, but after Step37 do not assume that tiny diff is automatically safe. Step36 `w=0.0275,l4` looks like a sharp public optimum: one-row or five-row micro-retunes around it can still hurt badly. Further attempts should inspect the actual changed rows before submitting, not continue blind weight/threshold micro-sweeps.
+**Rule:** near a public-best anchor, rank candidates by a combination of OOF, distribution safety, and **diff versus the current best**, but after Step37/Step38 do not assume that tiny diff is automatically safe. Step36 `w=0.0275,l4` is a sharp public optimum from both sides: increasing to `w=0.028-0.029` and decreasing to `w=0.026-0.0265` both regressed, including one-row-different probes. Further attempts should inspect the actual changed rows before submitting, not continue blind weight/threshold micro-sweeps.
 
 **Action items.**
 - [x] Promote Step36 `w=0.0275` as current best public anchor (`0.73213`).
 - [x] Record the failed/high-OOF Step36 probes so future sweeps do not over-trust OOF.
 - [ ] Inspect the 5 changed rows between Step25 and Step36 winner; these are now the most valuable forensic examples.
-- [x] Test tiny single-knob neighborhoods around `ridge_a3, w=0.0275, lambda=4`; Step37 regressed, so stop blind micro-sweeps.
+- [x] Test tiny single-knob neighborhoods around `ridge_a3, w=0.0275, lambda=4`; Step37 and Step38 regressed on both higher and lower weights, so stop blind micro-sweeps.
 
 ---
 

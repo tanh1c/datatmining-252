@@ -1,0 +1,11 @@
+id,title,venue,step25_pred,step41_pred
+2707,A Complete Proof System for 1-Free Regular Expressions Modulo Bisimilarity.,lics,1,2
+2205,Program Verification Under Weak Memory Consistency Using Separation Logic.,cav,1,2
+1545,Dynamic Programming for Symbolic Boolean Realizability and Synthesis.,cav,4,3
+947,A Data Complexity and Rewritability Tetrachotomy of Ontology-Mediated Queries with a Covering Axiom.,kr,4,3
+1464,StatWhy: Formal Verification Tool for Statistical Hypothesis Testing Programs.,cav,4,3
+2542,Reasoning on Data Words over Numeric Domains.,lics,3,4
+1107,Preference Aggregation with Incomplete CP-Nets.,kr,1,2
+1804,AIGEN: Random Generation of Symbolic Transition Systems.,cav,3,2
+1329,Semantics for Conditional Literals via the SM Operator.,lpnmr,1,2
+1723,Program Verification with Constrained Horn Clauses (Invited Paper).,cav,1,2
